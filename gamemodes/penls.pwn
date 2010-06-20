@@ -5,9 +5,9 @@
 #include <file>
 #include "../include/rus_text.inc"
 
-#define SCRIPT_VERSION "1.0"
+#define SCRIPT_VERSION "1.0.1"
 
-static gTeam[MAX_PLAYERS]; // Tracks the team assignment for each player
+new gTeam[MAX_PLAYERS]; // Tracks the team assignment for each player
 
 #define MAX_ALLOWED_CHARS 89
 #define CHECKPOINT_NONE 0
@@ -1772,7 +1772,7 @@ public CopScanner()
 
 public Spectator()
 {
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -2301,15 +2301,13 @@ public OnPlayerConnect(playerid)
 		gPlayerAccount[playerid] = 1;
 		SendClientMessageRus(playerid, COLOR_YELLOW, "СЕРВЕР: Этот ник зарегистрирован, у вас 60 секунд, чтобы авторизоваться");
 		SendClientMessageRus(playerid, COLOR_WHITE, "ПОДСКАЗКА: Чтобы войти введите /login <password>");
-		return 1;
 	}
 	else
 	{
 		gPlayerAccount[playerid] = 0;
 		SendClientMessageRus(playerid, COLOR_YELLOW, "СЕРВЕР: Введите /regnick <password> чтобы зарегистрироваться или /help для помощи");
-		return 1;
 	}
-//	return 1;
+	return 1;
 }
 
 public ClearCrime(playerid)
@@ -2330,7 +2328,7 @@ public BetWinner(playerid,contest)
 	new better[MAX_PLAYER_NAME];
 	new string[256];
 	GetPlayerName(playerid, winname, sizeof(winname));
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -2391,7 +2389,7 @@ public OnPlayerDisconnect(playerid)
 		DmHiPlayer = -1;
 		new tmp1;
 		new tmp2;
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(DmScore[i] > tmp1 && IsPlayerConnected(i) == 1)
 			{
@@ -2530,7 +2528,6 @@ public OnPlayerDeath(playerid, killerid, reason)
 {
 	if (gdebug >=0){
 		printf("OnPlayerDeath Playerid:%d killerid:%d reason:%d", playerid, killerid, reason);
-		printf("INVALID_PLAYER_ID is %d", INVALID_PLAYER_ID);
 	}
 	new name[MAX_PLAYER_NAME];
 	new string[256];
@@ -2557,158 +2554,145 @@ public OnPlayerDeath(playerid, killerid, reason)
 		}
 	}
 	SendDeathMessage(killerid, playerid, reason);
-	
-	if (PlayerInfo[killerid][pAdmin] < 1)
+	if( killerid != INVALID_PLAYER_ID)
 	{
-		if(reason == 38)
+		if (PlayerInfo[killerid][pAdmin] < 1)
 		{
-			if(gPlayerFighter[playerid] != 1)
+			if(reason == 38)
 			{
-				new kickname[MAX_PLAYER_NAME];
-				if(IsPlayerConnected(killerid))
+				if(gPlayerFighter[playerid] != 1)
 				{
-                    GetPlayerWeaponData(killerid, 7, sgun, sammo);
-                    if(sgun == reason && sammo > 0)
-                    {
-    					GetPlayerName(killerid, kickname, sizeof(kickname));
-						format(string, 256, "AdmWarning: [%d]%s только что убил игрока [%d]%s из Минигана и был забанен по IP.",killerid,kickname, playerid, name);
-						ABroadCast(0xFF000000,string,1);
-						Ban(killerid);
-						return 1;
+					new kickname[MAX_PLAYER_NAME];
+					if(IsPlayerConnected(killerid))
+					{
+                    	GetPlayerWeaponData(killerid, 7, sgun, sammo);
+                    	if(sgun == reason && sammo > 0)
+                    	{
+    						GetPlayerName(killerid, kickname, sizeof(kickname));
+							format(string, 256, "AdmWarning: [%d]%s только что убил игрока [%d]%s из Минигана и был забанен по IP.",killerid,kickname, playerid, name);
+							ABroadCast(0xFF000000,string,1);
+							Ban(killerid);
+							return 1;
+						}
+						else
+		 				{
+							GetPlayerName(killerid, kickname, sizeof(kickname));
+							format(string, 256, "AdmWarning: [%d]%s пытался подставить игрока [%d]%s используя чит и был кикнут.",playerid,name, killerid, kickname);
+							ABroadCast(0xFF000000,string,1);
+							Kick(playerid);
+							return 1;
+		 				}
 					}
-	 				else
-	 				{
-                        GetPlayerName(killerid, kickname, sizeof(kickname));
-						format(string, 256, "AdmWarning: [%d]%s пытался подставить игрока [%d]%s используя чит и был кикнут.",playerid,name, killerid, kickname);
-						ABroadCast(0xFF000000,string,1);
-						Kick(playerid);
-						return 1;
-	 				}
 				}
 			}
-		}
-		if(reason == 35)
-		{
-			if(gPlayerFighter[playerid] != 1)
+			if(reason == 35)
 			{
-				new kickname[MAX_PLAYER_NAME];
-				if(IsPlayerConnected(killerid))
+				if(gPlayerFighter[playerid] != 1)
 				{
-				    GetPlayerWeaponData(killerid, 7, sgun, sammo);
-                    if(sgun == reason && sammo > 0)
-                    {
-						GetPlayerName(killerid, kickname, sizeof(kickname));
-						format(string, 256, "AdmWarning: [%d]%s только что убил игрока [%d]%s из Огнемёта и был забанен по IP .",killerid,kickname, playerid, name);
-						ABroadCast(0xFF000000,string,1);
-						Ban(killerid);
-						return 1;
+					new kickname[MAX_PLAYER_NAME];
+					if(IsPlayerConnected(killerid))
+					{
+						GetPlayerWeaponData(killerid, 7, sgun, sammo);
+						if(sgun == reason && sammo > 0)
+						{
+							GetPlayerName(killerid, kickname, sizeof(kickname));
+							format(string, 256, "AdmWarning: [%d]%s только что убил игрока [%d]%s из Огнемёта и был забанен по IP .",killerid,kickname, playerid, name);
+							ABroadCast(0xFF000000,string,1);
+							Ban(killerid);
+							return 1;
+						}
+						else
+		 				{
+	                        GetPlayerName(killerid, kickname, sizeof(kickname));
+							format(string, 256, "AdmWarning: [%d]%s пытался подставить игрока [%d]%s используя чит и был кикнут.",playerid,name, killerid, kickname);
+							ABroadCast(0xFF000000,string,1);
+							Kick(playerid);
+							return 1;
+		 				}
 					}
-					else
-	 				{
-                        GetPlayerName(killerid, kickname, sizeof(kickname));
-						format(string, 256, "AdmWarning: [%d]%s пытался подставить игрока [%d]%s используя чит и был кикнут.",playerid,name, killerid, kickname);
-						ABroadCast(0xFF000000,string,1);
-						Kick(playerid);
-						return 1;
-	 				}
 				}
 			}
-		}
-		if(reason == 9)
-		{
-			if(gPlayerFighter[playerid] != 1)
+			if(reason == 9)
 			{
-				new kickname[MAX_PLAYER_NAME];
-				if(IsPlayerConnected(killerid))
+				if(gPlayerFighter[playerid] != 1)
 				{
-                    GetPlayerWeaponData(killerid, 1, sgun, sammo);
-                    if(sgun == reason && sammo > 0)
-                    {
-						GetPlayerName(killerid, kickname, sizeof(kickname));
-						format(string, 256, "AdmWarning: [%d]%s только что убил игрока [%d]%s Бензопилой и был забанен по IP.",killerid,kickname, playerid, name);
-						ABroadCast(0xFF000000,string,1);
-						Ban(killerid);
-						return 1;
+					new kickname[MAX_PLAYER_NAME];
+					if(IsPlayerConnected(killerid))
+					{
+	                    GetPlayerWeaponData(killerid, 1, sgun, sammo);
+	                    if(sgun == reason && sammo > 0)
+	                    {
+							GetPlayerName(killerid, kickname, sizeof(kickname));
+							format(string, 256, "AdmWarning: [%d]%s только что убил игрока [%d]%s Бензопилой и был забанен по IP.",killerid,kickname, playerid, name);
+							ABroadCast(0xFF000000,string,1);
+							Ban(killerid);
+							return 1;
+						}
+						else
+		 				{
+	                        GetPlayerName(killerid, kickname, sizeof(kickname));
+							format(string, 256, "AdmWarning: [%d]%s пытался подставить игрока [%d]%s используя чит и был кикнут.",playerid,name, killerid, kickname);
+							ABroadCast(0xFF000000,string,1);
+							Kick(playerid);
+							return 1;
+		 				}
 					}
-					else
-	 				{
-                        GetPlayerName(killerid, kickname, sizeof(kickname));
-						format(string, 256, "AdmWarning: [%d]%s пытался подставить игрока [%d]%s используя чит и был кикнут.",playerid,name, killerid, kickname);
-						ABroadCast(0xFF000000,string,1);
-						Kick(playerid);
-						return 1;
-	 				}
 				}
 			}
-		}
-/*		if(reason == 16) // Гранаты есть в моде
-		{
-			if(gPlayerFighter[playerid] != 1)
+			if(reason == 18)
 			{
-				new kickname[MAX_PLAYER_NAME];
-				if(IsPlayerConnected(killerid))
+				if(gPlayerFighter[playerid] != 1)
 				{
-					GetPlayerName(killerid, kickname, sizeof(kickname));
-					format(string, 256, "AdmWarning: [%d]%s только что подорвал игрока [%d]%s гранатой и был забанен по IP.",killerid,kickname, playerid, name);
-					ABroadCast(0xFF000000,string,1);
-					Ban(killerid);
-					return 1;
+					new kickname[MAX_PLAYER_NAME];
+					if(IsPlayerConnected(killerid))
+					{
+						GetPlayerWeaponData(killerid, 8, sgun, sammo);
+						if(sgun == reason && sammo > 0)
+						{
+							GetPlayerName(killerid, kickname, sizeof(kickname));
+							format(string, 256, "AdmWarning: [%d]%s только что убил игрока [%d]%s Молотовым и был забанен по IP.",killerid,kickname, playerid, name);
+							ABroadCast(0xFF000000,string,1);
+							Ban(killerid);
+							return 1;
+						}
+						else
+		 				{
+    	                    GetPlayerName(killerid, kickname, sizeof(kickname));
+							format(string, 256, "AdmWarning: [%d]%s пытался подставить игрока [%d]%s используя чит и был кикнут.",playerid,name, killerid, kickname);
+							ABroadCast(0xFF000000,string,1);
+							Kick(playerid);
+							return 1;
+		 				}
+					}
 				}
 			}
-		}*/
-		if(reason == 18)
-		{
-			if(gPlayerFighter[playerid] != 1)
+			if(reason == 36)
 			{
-				new kickname[MAX_PLAYER_NAME];
-				if(IsPlayerConnected(killerid))
+				if(gPlayerFighter[playerid] != 1)
 				{
-                    GetPlayerWeaponData(killerid, 8, sgun, sammo);
-                    if(sgun == reason && sammo > 0)
-                    {
-						GetPlayerName(killerid, kickname, sizeof(kickname));
-						format(string, 256, "AdmWarning: [%d]%s только что убил игрока [%d]%s Молотовым и был забанен по IP.",killerid,kickname, playerid, name);
-						ABroadCast(0xFF000000,string,1);
-						Ban(killerid);
-						return 1;
+    				new kickname[MAX_PLAYER_NAME];
+					if(IsPlayerConnected(killerid))
+					{
+                	    GetPlayerWeaponData(killerid, 7, sgun, sammo);
+                	    if(sgun == reason && sammo > 0)
+                	    {
+							GetPlayerName(killerid, kickname, sizeof(kickname));
+							format(string, 256, "AdmWarning: [%d]%s только что убил игрока [%d]%s из HS Rocket Launcher и был забанен по IP.",killerid,kickname, playerid, name);
+							ABroadCast(0xFF000000,string,1);
+							Ban(killerid);
+							return 1;
+						}
+						else
+	 					{
+                	        GetPlayerName(killerid, kickname, sizeof(kickname));
+							format(string, 256, "AdmWarning: [%d]%s пытался подставить игрока [%d]%s используя чит и был кикнут.",playerid,name, killerid, kickname);
+							ABroadCast(0xFF000000,string,1);
+							Kick(playerid);
+							return 1;
+		 				}
 					}
-					else
-	 				{
-                        GetPlayerName(killerid, kickname, sizeof(kickname));
-						format(string, 256, "AdmWarning: [%d]%s пытался подставить игрока [%d]%s используя чит и был кикнут.",playerid,name, killerid, kickname);
-						ABroadCast(0xFF000000,string,1);
-						Kick(playerid);
-						return 1;
-	 				}
-				}
-			}
-		}
-		if(reason == 36)
-		{
-			if(gPlayerFighter[playerid] != 1)
-			{
-    			new kickname[MAX_PLAYER_NAME];
-				if(IsPlayerConnected(killerid))
-				{
-                    GetPlayerWeaponData(killerid, 7, sgun, sammo);
-                    if(sgun == reason && sammo > 0)
-                    {
-						GetPlayerName(killerid, kickname, sizeof(kickname));
-						format(string, 256, "AdmWarning: [%d]%s только что убил игрока [%d]%s из HS Rocket Launcher и был забанен по IP.",killerid,kickname, playerid, name);
-						ABroadCast(0xFF000000,string,1);
-						Ban(killerid);
-						return 1;
-					}
-					else
-	 				{
-                        GetPlayerName(killerid, kickname, sizeof(kickname));
-						format(string, 256, "AdmWarning: [%d]%s пытался подставить игрока [%d]%s используя чит и был кикнут.",playerid,name, killerid, kickname);
-						ABroadCast(0xFF000000,string,1);
-						Kick(playerid);
-						return 1;
-	 				}
-				}
 
+				}
 			}
 		}
 	}
@@ -2784,7 +2768,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 	ClearCrime(playerid);
 	if (killerid == INVALID_PLAYER_ID)
 	{
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i) && gTeam[i] != gTeam[playerid] && CrimInRange(20.0, playerid,i) && GetPlayerState(i) != 2)
 			{
@@ -2845,14 +2829,14 @@ public OnPlayerDeath(playerid, killerid, reason)
 				SendClientMessageRus(playerid, COLOR_YELLOW, string);
 				KillTimer(offhook);
 				new tmpmed;
-				for(new i = 0; i <= MAX_PLAYERS; i++)
+				for(new i = 0; i < MAX_PLAYERS; i++)
 				{
 					if(IsPlayerConnected(i) == 1 && gTeam[i] == TEAM_CYAN)
 					{
 						tmpmed++;
 					}
 				}
-				for(new i = 0; i <= MAX_PLAYERS; i++)
+				for(new i = 0; i < MAX_PLAYERS; i++)
 				{
 					if(IsPlayerConnected(i) == 1 && gTeam[i] == TEAM_CYAN)
 					{
@@ -3383,7 +3367,7 @@ public PrePlayerNewMission()
 	{
 		gFighters=0;
 		gFightLeader=0;
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i))
 			{
@@ -3402,7 +3386,7 @@ public PrePlayerNewMission()
 		if(MissionActive != 0)
 		{
 			printf("DEBUG: Bad Hotwire: stealcar = %d, stealcardest = %d",stealcar,stealcardest);
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i))
 				{
@@ -3419,7 +3403,7 @@ public PrePlayerNewMission()
 	if (MissionActive > 4 && MissionActive <= 7 )
 	{
 		CheckpointReset();
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i))
 			{
@@ -3584,7 +3568,7 @@ public SetPlayerNewMission()
 			rz = cwz;
 			MissionActive = 1;
 			if (gdebug){print("DEBUG MissionActive = 1;");}
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) && gPlayerSpawned[i])
 				{
@@ -3614,7 +3598,7 @@ public SetPlayerNewMission()
 /*
 		case 2:
 		{
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if (IsPlayerConnected(i) && i != gSuperCop && i != gPublicEnemy )
 				{
@@ -3627,7 +3611,7 @@ public SetPlayerNewMission()
 		}
 		case 3:
 		{
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if (IsPlayerConnected(i))
 				{
@@ -3713,7 +3697,7 @@ public SetPlayerNewMission()
 			}
 			MissionActive = 5;
 			if (gdebug){print("DEBUG MissionActive = 5");}
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) && (gPlayerSpawned[i] == 1))
 				{
@@ -3763,7 +3747,7 @@ public SetPlayerNewMission()
 			}
 			MissionActive = 9;
 			if (gdebug){print("DEBUG MissionActive = 9;");}
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) && (gPlayerSpawned[i] == 1))
 				{
@@ -3822,7 +3806,7 @@ public SetPlayerNewMission()
 			SendClientMessageToAllRus(COLOR_GREEN, winfo);
 			//dmlist++;
 			//printf("racelist3 = %d",racelist);
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) && gPlayerSpawned[i])
 				{
@@ -3840,7 +3824,7 @@ public SetPlayerNewMission()
 /*
 		case 10:
 		{
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i))
 				{
@@ -3855,7 +3839,7 @@ public SetPlayerNewMission()
 		}
 		case 101:
 		{
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i))
 				{
@@ -3871,7 +3855,7 @@ public SetPlayerNewMission()
 		}
 		case 102:
 		{
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i))
 				{
@@ -4077,7 +4061,7 @@ public OnPlayerEnterCheckpoint(playerid)
 						//RaceDebug(playerid);
 						if(gLaps == 2)
 						{
-							for(new i = 0; i <= MAX_PLAYERS; i++)
+							for(new i = 0; i < MAX_PLAYERS; i++)
 							{
 								if(IsPlayerConnected(i) && gTeam[i] == 2)
 								{
@@ -4454,7 +4438,7 @@ public RaceDebug(playerid)
 public RaceEnd()
 {
 	CheckpointReset();
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -4478,7 +4462,7 @@ public RaceDelay()
 	new string[32];
 	format(string, sizeof(string), "~r~Ready");
 	new gdelay=1000;
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -4498,7 +4482,7 @@ public RaceDelayr()
 	new string[32];
 	format(string, sizeof(string), "~y~Set");
 	new hdelay=1000;
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -4519,7 +4503,7 @@ public RaceDelayg()
 	new string[32];
 	format(string, sizeof(string), "~g~GO");
 	gLaps = 0;
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -4553,7 +4537,7 @@ public DMDelay()
 	gFightLeader = 1000;
 	format(string, sizeof(string), "~r~Ready");
 	new gdelay=1000;
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		DisablePlayerCheckpoint(i);
 		if(IsPlayerConnected(i))
@@ -4574,7 +4558,7 @@ public DMDelayr()
 	new string[32];
 	format(string, sizeof(string), "~y~Set");
 	new hdelay=1000;
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -4594,7 +4578,7 @@ public DMDelayg()
 	new rdelay=1000;
 	new string[32];
 	format(string, sizeof(string), "~g~FIGHT");
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -4617,7 +4601,7 @@ public DMDetect()
 	{
 		dmtimer++;
 		PlayerInArena();
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i) == 1 && gPlayerFighter[i] == 1)
 			{
@@ -4631,7 +4615,7 @@ public DMDetect()
 		{
 			new ename[MAX_PLAYER_NAME];
 			new string[256];
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) == 1 && gPlayerFighter[i] == 1 || IsPlayerConnected(i) == 1 && TVMode[i]>11 && TVMode[i]<20)
 				{
@@ -4669,7 +4653,7 @@ public DMDetect()
 		}
 		if(dmtimer == dmtime+10)
 		{
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) == 1)
 				{
@@ -4755,7 +4739,7 @@ public DMEndCam(playerid,string[])
 
 public DMScoreCalc()
 {
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && gPlayerFighter[i] == 1)
 		{
@@ -4783,7 +4767,7 @@ public OnPlayerDropCashBox(playerid)
 	format(string, sizeof(string), ".: %s потерял кейс! :.", dname);
 	BroadCast(COLOR_RED, string);
 	GetPlayerPos(playerid, cwx, cwy, cwz);
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -4805,7 +4789,7 @@ public RewardCalc(playerid,min,max)
 public CheckpointReset()
 {
 	if (gdebug >= 1){printf("DEBUG CheckpointReset()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -4883,7 +4867,7 @@ public SetAllPlayerCheckpoint(Float:allx, Float:ally, Float:allz, Float:radi, nu
 public SetAllCopCheckpoint(Float:allx, Float:ally, Float:allz, Float:radi)
 {
 	if (gdebug >= 1){printf("DEBUG SetAllCopCheckpoint()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -4920,7 +4904,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		{
 			new count;
 			new string[256];
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) && gTeam[i] == 2 && CrimInRange(50.0, playerid,i))
 				{
@@ -4992,7 +4976,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			}
 
 		}
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i))
 			{
@@ -5127,7 +5111,7 @@ public HireCost(carid)
 	for(new c = 1; c < 254; c++)
 	{
 
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i))
 			{
@@ -5173,7 +5157,7 @@ public CarInit()
 public CarTow(carid)
 {
 	if (gdebug >= 1){printf("DEBUG CarRespawn(%d)",carid);}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -5194,7 +5178,7 @@ public CarTow(carid)
 public CarRespawn(carid)
 {
 	if (gdebug >= 1){printf("DEBUG CarRespawn(%d)",carid);}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -5214,7 +5198,7 @@ public CarRespawn(carid)
 public LockCar(carid)
 {
 	if (gdebug >= 1){printf("DEBUG LockCar(%d)",carid);}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -5233,7 +5217,7 @@ public LockCar(carid)
 public UnLockCar(carid)
 {
 	if (gdebug >= 1){printf("DEBUG UnLockCar(%d)",carid);}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -5255,7 +5239,7 @@ public UnLockCar(carid)
 public OpenDoors()
 {
 	if (gdebug >= 1){printf("DEBUG OpenDoors()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -5411,7 +5395,7 @@ public OnPlayerExitVehicle(playerid, vehicleid)
 	if (vehicleid == stealcar && (MissionActive == 10 || MissionActive == 101))
 	{
 		GameTextForPlayerRus(playerid, "~w~Get back in the ~n~~r~Car", 5000, 1);
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i))
 			{
@@ -5438,7 +5422,7 @@ public OnPlayerExitVehicle(playerid, vehicleid)
 		GameTextForPlayerRus(playerid, string, 5000, 6);
 		format(string, sizeof(string), "%s продал угнанную машину за $%d.", ename,reward);
 		BroadCast(COLOR_YELLOW, string);
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i))
 			{
@@ -5475,7 +5459,7 @@ public OnPlayerExitVehicle(playerid, vehicleid)
 		GameTextForPlayerRus(playerid, string, 5000, 6);
 		format(string, sizeof(string), "Офицер %s вернул угнанную машину стоимостью $%d.", ename,reward);
 		BroadCast(COLOR_YELLOW, string);
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i))
 			{
@@ -5729,7 +5713,7 @@ public SetPlayerCriminal(playerid,declare,reason[],pe,flash)
 		format(turnmes, sizeof(turnmes), "HQ: разыскивается за %s. У вас %d минут.",reason,petime/60000);
 		format(objstore, sizeof(objstore), "SMS: Убей этого сосунка %s и забери его бабки, Отправитель: MOLE (555)",turned);
 		SendTeamMessage(2, COLOR_DBLUE, turnmes);
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i) && gPublicEnemy != i && gTeam[i] >= 3)
 			{
@@ -5763,7 +5747,7 @@ public SetPlayerCriminal(playerid,declare,reason[],pe,flash)
 		SendClientMessageRus(playerid, COLOR_RED, turnmes);
 	}
 	print("DEBUG: 5");
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) && (gTeam[i]) == 2 && gPublicEnemy != playerid)
 		{
@@ -5812,7 +5796,7 @@ public SetPlayerFree(playerid,declare,reason[],pe,flash)
 	format(turnmes, sizeof(turnmes), "SMS: %s, Вы больше не преступник, т.к. %s, Отправитель: MOLE (555)",turned,reason);
 	RingTone[playerid] = 20;
 	SendClientMessageRus(playerid, COLOR_YELLOW, turnmes);
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) && (gTeam[i]) == 2)
 		{
@@ -5882,7 +5866,7 @@ public CellPhoneTimer()
 {
 	if (gdebug >= 3){printf("DEBUG CellPhoneTimer()");}
 	new string[64];
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -5924,7 +5908,7 @@ public CellPhoneTimer()
 public SetPlayerFlash()
 {
 //if (gdebug >= 2){printf("DEBUG SetPlayerFlash()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if (gPublicEnemy == i || gSuperCop == i)
 		{
@@ -5944,7 +5928,7 @@ public SetPlayerFlash()
 public SetPlayerFlashRev()
 {
 //if (gdebug >= 2){printf("DEBUG SetPlayerFlashRev()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && FlashTime[i] > 1)
 		{
@@ -5961,7 +5945,7 @@ public SetPlayerFlashRev()
 public RingToner()
 {
 //if (gdebug >= 2){printf("DEBUG RingToner()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && RingTone[i] != 6 && RingTone[i] != 0 && RingTone[i] < 11)
 		{
@@ -5988,7 +5972,7 @@ public RingToner()
 public RingTonerRev()
 {
 //if (gdebug >= 2){printf("DEBUG SetPlayerFlashRev()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1  && RingTone[i] != 5 && RingTone[i] != 0 && RingTone[i] < 10)
 		{
@@ -6013,7 +5997,7 @@ public RingTonerRev()
 public SetPlayerUnjail()
 {
 	if (gdebug >= 3){printf("DEBUG SetPlayerUnjail()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && JailTime[i] < 0)
 		{
@@ -6042,7 +6026,7 @@ public SetPlayerUnjail()
 public VoteKickTimer()
 {
 	if (gdebug >= 3){printf("DEBUG VoteKickTimer()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && VoteKick[i] > 0)
 		{
@@ -6078,7 +6062,7 @@ public ClearVote(kickedid)
 {
 	KickVote[kickedid] = 0;
 	VoteKick[kickedid] = 0;
-	for(new j = 0; j <= MAX_PLAYERS; j++)
+	for(new j = 0; j < MAX_PLAYERS; j++)
 	{
 		if(IsPlayerConnected(j) == 1 && LastVote[j] == kickedid)
 		{
@@ -6389,7 +6373,7 @@ public GameModeInitExitFunc()
 	if (gdebug >= 1){printf("DEBUG GameModeInitExitFunc()");}
 	new string[128];
 	format(string, sizeof(string), "Traveling...");
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -7301,7 +7285,7 @@ public SkyDive()
 {
 	skydivecount--;
 	new string[256];
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && gSkyDive[i] == 1)
 		{
@@ -7496,7 +7480,7 @@ public PayDay()
 	new string[128];
 	new pay,account,interest;
 	new rent = 0;
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && PlayerInfo[i][pLevel] > 0)
 		{
@@ -8220,7 +8204,7 @@ public BroadCast(color, string[])
 
 public ABroadCast(color, string[],level)
 {
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -8236,7 +8220,7 @@ public ABroadCast(color, string[],level)
 
 public OOCOff(color, string[])
 {
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && !gOoc[i])
 		{
@@ -8248,7 +8232,7 @@ public OOCOff(color, string[])
 public PlaySoundAll(playerid, soundid, Float:psx ,Float:psy ,Float:psz)
 {
 	if (gdebug >= 1){printf("DEBUG PlaySoundAll(%d)", playerid);}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -8260,7 +8244,7 @@ public PlaySoundAll(playerid, soundid, Float:psx ,Float:psy ,Float:psz)
 public SendTeamMessage(team, color, string[])
 {
 	if (gdebug >= 1){printf("DEBUG SendTeamMessage(%d)", team);}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && gTeam[i] == team)
 		{
@@ -8272,7 +8256,7 @@ public SendTeamMessage(team, color, string[])
 public SendTeamBeepMessage(team, color, string[])
 {
 	if (gdebug >= 1){printf("DEBUG SendTeamMessage(%d)", team);}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && gTeam[i] == team)
 		{
@@ -8284,7 +8268,7 @@ public SendTeamBeepMessage(team, color, string[])
 
 public SendEnemyMessage(color, string[])
 {
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && gTeam[i] >= 3)
 		{
@@ -8297,7 +8281,7 @@ public SendEnemyMessage(color, string[])
 public SendAdminMessage(color, string[])
 {
 	if (gdebug >= 1){printf("DEBUG SendAdminMessage()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && PlayerInfo[i][pAdmin] > 1)
 		{
@@ -8327,7 +8311,7 @@ public PlayerPlayMusic(playerid)
 public StopMusic()
 {
 	if (gdebug >= 1){printf("DEBUG StopMusic()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -8347,7 +8331,7 @@ public PlayerFixRadio(playerid)
 public PlayerFixRadio2()
 {
 	if (gdebug >= 1){printf("DEBUG StopMusic()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -8363,7 +8347,7 @@ public PlayerFixRadio2()
 public PlayJailSound(sound , stopsound, duration, Float:jailx, Float:jaily, Float:jailz)
 {
 	if (gdebug >= 1){printf("DEBUG PlayJailSound()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -8381,7 +8365,7 @@ public PlayJailSound(sound , stopsound, duration, Float:jailx, Float:jaily, Floa
 public StopJail()
 {
 	if (gdebug >= 1){printf("DEBUG StopJail()");}
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -11567,7 +11551,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		{
 			if(PlayerInfo[playerid][pPhousekey] != -1)
 			{
-				for(new i = 0; i <= MAX_PLAYERS; i++)
+				for(new i = 0; i < MAX_PLAYERS; i++)
 				{
 					if(IsPlayerConnected(i) == 1 && HireCar[PlayerInfo[playerid][pPhousekey]+1])
 					{
@@ -12291,7 +12275,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		new bouse = PlayerInfo[playerid][pPhousekey];
 		if (bouse != -1 && strcmp(playername, HouseInfo[PlayerInfo[playerid][pPhousekey]][hOwner], true) == 0)
 		{
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) == 1 && i != playerid)
 				{
@@ -12407,7 +12391,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			SendClientMessageRus(playerid, COLOR_GRAD2, "..Вы уже разговариваете по телефону");
 			return 1;
 		}
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i) == 1)
 			{
@@ -12489,7 +12473,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				return 1;
 			}
 		}
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i) == 1)
 			{
@@ -12526,7 +12510,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			SendClientMessageRus(playerid, COLOR_GRAD2, "..Вы уже разговариваете по телефону");
 			return 1;
 		}
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i) == 1)
 			{
@@ -13568,7 +13552,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		{
 			if (PlayerInfo[playerid][pAdmin] >= 3)
 			{
-				for(new i = 0; i <= MAX_PLAYERS; i++)
+				for(new i = 0; i < MAX_PLAYERS; i++)
 				{
 					if(IsPlayerConnected(i) && gPlayerSpawned[i])
 					{
@@ -14407,7 +14391,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		format(string, sizeof(string), "SMS: %s, Отправитель: MOLE (555)",result);
 		if (gTeam[playerid] < 3){SendClientMessageRus(playerid, COLOR_YELLOW, string);}
 		SendEnemyMessage(COLOR_YELLOW, string);
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i) && gPlayerSpawned[i])
 			{
@@ -14561,7 +14545,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				return 1;
 			}
 			house = Unspec[playerid][sLocal];
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) && gPlayerSpawned[i])
 				{
@@ -14659,7 +14643,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		}
 		if(strcmp("next", tmp, true, strlen(tmp)) == 0 && PlayerInfo[playerid][pAdmin] >= 1)
 		{
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) && gPlayerSpawned[i])
 				{
@@ -15075,7 +15059,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	{
 		if (PlayerInfo[playerid][pAdmin] >= 1337)
 		{
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) == 1)
 				{
@@ -15116,7 +15100,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				return 1;
 			}
 			format(string, sizeof(string), "~b~%s: ~w~%s",sendername,result);
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) == 1)
 				{
@@ -15166,7 +15150,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				return 1;
 			}
 			format(string, sizeof(string), "~w~%s",result);
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) == 1)
 				{
@@ -16994,7 +16978,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		{
 			MissionActive = 0;
 			CheckpointReset();
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i))
 				{
@@ -17177,7 +17161,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		{
 			gFighters=0;
 			gFightLeader=0;
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i))
 				{
@@ -17293,7 +17277,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			MissionActive = 0;
 			if (gdebug){print("DEBUG MissionActive = 0");}
 			CheckpointReset();
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i))
 				{
@@ -17310,7 +17294,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			gRaceEnd = 0;
 			gLaps = 0;
 			KillTimer(raceendtimer);
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) == 1)
 				{
@@ -17760,7 +17744,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		new weaponid = strval(tmp);
 		if (PlayerInfo[playerid][pAdmin] >= 2)
 		{
-			for(new i = 0; i <= MAX_PLAYERS; i++) { if(IsPlayerConnected(i) == 1) { PlayerPlaySound(i, weaponid, 0.0, 0.0, 0.0); } }
+			for(new i = 0; i < MAX_PLAYERS; i++) { if(IsPlayerConnected(i) == 1) { PlayerPlaySound(i, weaponid, 0.0, 0.0, 0.0); } }
 		}
 		else
 		{
@@ -17773,7 +17757,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	if (strcmp(cmd, "/admins", true) == 0)
 	{
 		SendClientMessageRus(playerid, COLOR_GRAD1, "Админы онлайн:");
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i) == 1 && PlayerInfo[i][pAdmin] >= 1 && PlayerInfo[i][pAdmin] < 1338)
 			{
@@ -18295,7 +18279,7 @@ public ProxDetector(Float:radi, playerid, string[],col1,col2,col3,col4,col5)
 	new Float:tempposx, Float:tempposy, Float:tempposz;
 	GetPlayerPos(playerid, oldposx, oldposy, oldposz);
 	//radi = 2.0; //Trigger Radius
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -18364,7 +18348,7 @@ public CrimProxDetector(Float:radi, playerid,col1,col2,col3,col4,col5,col6,col7,
 	for(count = 10; count >= 0; count=count-1)
 	{
 		//printf("counter = %d",count);
-		for(new i = 0; i <= MAX_PLAYERS; i++)
+		for(new i = 0; i < MAX_PLAYERS; i++)
 		{
 			if(IsPlayerConnected(i) == 1 && gTeam[i] == 2 && FlashTime[i] == 0)
 			{
@@ -18450,7 +18434,7 @@ public TestDistance(playerid,giveplayerid,Float:tarx,Float:tary,Float:tarz,Float
 public PlayerInArea()
 {
 	new Float:x, Float:y, Float:z;
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -18473,7 +18457,7 @@ public PlayerInArea()
 public PlayerInArena()
 {
 	new Float:x, Float:y, Float:z;
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -18550,7 +18534,7 @@ public PenInArea()
 			}
 			if(x == PenPos[0] && y == PenPos[1] && z == PenPos[2])
 			{
-				for(new i = 0; i <= MAX_PLAYERS; i++)
+				for(new i = 0; i < MAX_PLAYERS; i++)
 				{
 					if(IsPlayerConnected(i) && gTeam[i] == 2 && CrimInRange(5.0, gPublicEnemy,i))
 					{
@@ -18568,7 +18552,7 @@ public CustomPickups()
 {
 	new Float:oldposx, Float:oldposy, Float:oldposz;
 	new string[128];
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -18661,7 +18645,7 @@ public CustomPickups()
 
 public IdleKick()
 {
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && PlayerInfo[i][pAdmin] < 1)
 		{
@@ -18680,7 +18664,7 @@ public IdleKick()
 
 public AntiCamp()
 {
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -18706,7 +18690,7 @@ public AntiTeleport()
 	new string[256];
 	new Float:maxspeed = 175.0;
 	new money;
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && (GetPlayerState(i) == 2))
 		{
@@ -18771,7 +18755,7 @@ public RaceSpec(playerid)
 {
 	new tmplaps;
 	new bestracer;
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1 && LapCount[i] > 0)
 		{
@@ -18888,7 +18872,7 @@ public InHouse()
 {
 			new Float:oldposx, Float:oldposy, Float:oldposz;
 			new string[256];
-			for(new i = 0; i <= MAX_PLAYERS; i++)
+			for(new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if(IsPlayerConnected(i) == 1)
 				{
@@ -19001,7 +18985,7 @@ public InHouse()
 
 public IsStringAName(string[])
 {
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
@@ -19020,7 +19004,7 @@ public IsStringAName(string[])
 
 public GetPlayerID(string[])
 {
-	for(new i = 0; i <= MAX_PLAYERS; i++)
+	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(IsPlayerConnected(i) == 1)
 		{
