@@ -6902,6 +6902,7 @@ public OnGameModeInit()
 	LoadProperty();
 	LoadBizz();
 	LoadSBizz();
+ 	AllowInteriorWeapons(0);
 	//PlayerHaul[78][pLoad] = 10000;
 	PlayerHaul[78][pCapasity] = 10;
 	//PlayerHaul[79][pLoad] = 10000;
