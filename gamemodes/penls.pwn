@@ -567,7 +567,7 @@ new Races[54][128] = {
 {"BeachTwist"}
 };
 
-new DmGun[12] = {31,30,32,26,28,24,27,25,29,22,23,0};
+new DmGun[15] = {31,30,32,26,28,24,27,25,29,22,23,0,16,35,38};
 
 new DeathMatches[36][128] = {
 {"Area52"},
@@ -2560,7 +2560,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 		{
 			if(reason == 38)
 			{
-				if(gPlayerFighter[playerid] != 1)
+				if(gPlayerFighter[playerid] != 1 || (gPlayerFighter[playerid] == 1 && reason != dmweapon))
 				{
 					new kickname[MAX_PLAYER_NAME];
 					if(IsPlayerConnected(killerid))
@@ -2587,7 +2587,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 			}
 			if(reason == 35)
 			{
-				if(gPlayerFighter[playerid] != 1)
+				if(gPlayerFighter[playerid] != 1 || (gPlayerFighter[playerid] == 1 && reason != dmweapon))
 				{
 					new kickname[MAX_PLAYER_NAME];
 					if(IsPlayerConnected(killerid))
@@ -2614,7 +2614,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 			}
 			if(reason == 9)
 			{
-				if(gPlayerFighter[playerid] != 1)
+				if(gPlayerFighter[playerid] != 1 || (gPlayerFighter[playerid] == 1 && reason != dmweapon))
 				{
 					new kickname[MAX_PLAYER_NAME];
 					if(IsPlayerConnected(killerid))
@@ -2641,7 +2641,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 			}
 			if(reason == 18)
 			{
-				if(gPlayerFighter[playerid] != 1)
+				if(gPlayerFighter[playerid] != 1 || (gPlayerFighter[playerid] == 1 && reason != dmweapon))
 				{
 					new kickname[MAX_PLAYER_NAME];
 					if(IsPlayerConnected(killerid))
@@ -2668,7 +2668,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 			}
 			if(reason == 36)
 			{
-				if(gPlayerFighter[playerid] != 1)
+				if(gPlayerFighter[playerid] != 1 || (gPlayerFighter[playerid] == 1 && reason != dmweapon))
 				{
     				new kickname[MAX_PLAYER_NAME];
 					if(IsPlayerConnected(killerid))
@@ -8284,7 +8284,7 @@ public SendAdminMessage(color, string[])
 	if (gdebug >= 1){printf("DEBUG SendAdminMessage()");}
 	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
-		if(IsPlayerConnected(i) == 1 && PlayerInfo[i][pAdmin] > 1)
+		if(IsPlayerConnected(i) == 1 && PlayerInfo[i][pAdmin] > 0)
 		{
 			SendClientMessageRus(i, color, string);
 		}
@@ -8296,7 +8296,7 @@ public SendAdminMessage(color, string[])
 public AddCar(carcoords)
 {
 	new randcol = random(126);
-	new randcol2 = 1;
+	new randcol2 = random(126);
 	CreateVehicle(carselect[random(sizeof(carselect))], CarSpawns[carcoords][pos_x], CarSpawns[carcoords][pos_y], CarSpawns[carcoords][pos_z], CarSpawns[carcoords][z_angle], randcol, randcol2, 300);
 	//AddStaticVehicle(carselect[rccounter], CarSpawns[carindex][pos_x], CarSpawns[carindex][pos_y], CarSpawns[carindex][pos_z], CarSpawns[carindex][z_angle],randcol,randcol2); // nm
 	return 1;
@@ -13441,8 +13441,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
 			SendClientMessageRus(playerid, COLOR_WHITE,"*** Оружие ДМ ***");
 			SendClientMessageRus(playerid, COLOR_GRAD2,string);
-			SendClientMessageRus(playerid, COLOR_GRAD3, "Пушки: default chainsaw sdpistol colt45 mp5 shotgun spas12");
-			SendClientMessageRus(playerid, COLOR_GRAD3, "Пушки: deagle uzi sawnoff tec9 ak47 m4 rifle flamethrower");
+			SendClientMessageRus(playerid, COLOR_GRAD3, "Пушки: default chainsaw sdpistol colt45 mp5 shotgun spas12 deagle ");
+			SendClientMessageRus(playerid, COLOR_GRAD3, "Пушки: uzi sawnoff tec9 ak47 m4 rifle minigun rocketlauncher grenades");
 			SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
 			return 1;
 		}
@@ -13459,12 +13459,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				PlayerInfo[playerid][gPupgrade]--;
 			}
 			*/
-			if ((strcmp(gunid, "flamethrower", true, strlen(gunid)) == 0))
-			{
-				SendClientMessageRus(playerid, COLOR_GRAD6, "Оружие изменено на flamethrower");
-				dmweapon = 37;
-			}
-			else if ((strcmp(gunid, "rifle", true, strlen(gunid)) == 0))
+			if ((strcmp(gunid, "rifle", true, strlen(gunid)) == 0))
 			{
 				SendClientMessageRus(playerid, COLOR_GRAD6, "Оружие изменено на rifle");
 				dmweapon = 33;
@@ -13533,6 +13528,21 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			{
 				SendClientMessageRus(playerid, COLOR_GRAD6, "Оружие изменено на собственное");
 				dmweapon = 0;
+			}
+			else if ((strcmp(gunid, "minigun", true, strlen(gunid)) == 0))
+			{
+				SendClientMessageRus(playerid, COLOR_GRAD6, "Оружие изменено на minigun");
+				dmweapon = 38;
+			}
+			else if ((strcmp(gunid, "rocketlauncher", true, strlen(gunid)) == 0))
+			{
+				SendClientMessageRus(playerid, COLOR_GRAD6, "Оружие изменено на rocketlauncher");
+				dmweapon = 35;
+			}
+			else if ((strcmp(gunid, "grenades", true, strlen(gunid)) == 0))
+			{
+				SendClientMessageRus(playerid, COLOR_GRAD6, "Оружие изменено на grenades");
+				dmweapon = 16;
 			}
 			else
 			{
