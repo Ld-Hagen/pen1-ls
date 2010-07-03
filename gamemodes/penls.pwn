@@ -2862,7 +2862,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 		new killer[MAX_PLAYER_NAME];
 		GetPlayerName(killerid, killer, sizeof(killer));
 		new slice = ((PlayerInfo[playerid][pLevel]*deathcost)+(basedcost)); //1k +your level
-		playercash = GetPlayerMoney(playerid);
+		playercash = PlayerInfo[playerid][pCash];
 		if(SafeTime[playerid] <= 0 || gPlayerFighter[playerid] == 1)
 		{
 			if(gTeam[killerid] != gTeam[playerid])
@@ -6213,7 +6213,7 @@ public PrintPlayerWeapons(playerid,targetid)
 	SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
 	format(coordsstring, sizeof(coordsstring),"*** %s ***",name);
 	SendClientMessageRus(playerid, COLOR_WHITE,coordsstring);
-	format(coordsstring, sizeof(coordsstring), "Уровень: [%d] Здоровье: %.1f Наличные: [$%d] Денег в банке: [$%d] Телефон: [%d]", level, shealth+50, cash, account, pnumber);
+	format(coordsstring, sizeof(coordsstring), "Уровень: [%d] Здоровье: %.1f Наличные: [$%d ($%d)] Денег в банке: [$%d] Телефон: [%d]", level, shealth+50, cash, PlayerInfo[targetid][pCash], account, pnumber);
 	SendClientMessageRus(playerid, COLOR_GRAD1,coordsstring);
 	format(coordsstring, sizeof(coordsstring), "Оружие: %s %s %s %s %s %s", sgun1,sgun2,sgun3,sgun4,sgun5,sgun6);
 	SendClientMessageRus(playerid, COLOR_GRAD2,coordsstring);
@@ -7496,7 +7496,7 @@ public PayDay()
 				{
 					rent = 0;
 				}
-				else if(rent > GetPlayerMoney(i))
+				else if(rent > PlayerInfo[i][pCash])
 				{
 					PlayerInfo[i][pPhousekey] = -1;
 					SendClientMessageRus(i, COLOR_WHITE, "Вы были выселены");
@@ -7896,7 +7896,7 @@ public PlayerUpdate(playerid)
 			format(var, 32, "%s\n", PlayerInfo[playerid][pPassword]);fwrite(pFile, var);
 			fclose(pFile);
 			new File: hFile = fopen(string3, io_append);
-			PlayerInfo[playerid][pCash] = GetPlayerMoney(playerid);
+	//		PlayerInfo[playerid][pCash] = GetPlayerMoney(playerid);
 			format(var, 32, "%d pCash\n",PlayerInfo[playerid][pCash]);fwrite(hFile, var);
 			format(var, 32, "%d pAccount\n",PlayerInfo[playerid][pAccount]);fwrite(hFile, var);
 			format(var, 32, "%d pAdmin\n",PlayerInfo[playerid][pAdmin]);fwrite(hFile, var);
@@ -7973,7 +7973,7 @@ public OnPlayerRename(name[],string[],playerid)
 			format(var, 32, "%s\n", PlayerInfo[playerid][pPassword]);fwrite(pFile, var);
 			fclose(pFile);
 			new File: hFile = fopen(string, io_append);
-			PlayerInfo[playerid][pCash] = GetPlayerMoney(playerid);
+//			PlayerInfo[playerid][pCash] = GetPlayerMoney(playerid);
 			format(var, 32, "%d pCash\n",PlayerInfo[playerid][pCash]);fwrite(hFile, var);
 			format(var, 32, "%d pAccount\n",PlayerInfo[playerid][pAccount]);fwrite(hFile, var);
 			format(var, 32, "%d pAdmin\n",PlayerInfo[playerid][pAdmin]);fwrite(hFile, var);
@@ -8557,7 +8557,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			{
 				GetPlayerName(giveplayerid, giveplayer, sizeof(giveplayer));
 				GetPlayerName(playerid, sendername, sizeof(sendername));
-				playermoney = GetPlayerMoney(playerid);
+				playermoney = PlayerInfo[playerid][pCash];
 				if (moneys > 0 && playermoney >= moneys)
 				{
 					SafeGivePlayerMoney(playerid, (0 - moneys));
@@ -8966,7 +8966,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	{
 		if (gPlayerLogged[playerid] != 0)
 		{
-			PlayerInfo[playerid][pCash] = GetPlayerMoney(playerid);//
+			//PlayerInfo[playerid][pCash] = GetPlayerMoney(playerid);//
 			if (gdebug){printf("DEBUG buylev cash = %d", PlayerInfo[playerid][pCash]);}
 			if(PlayerInfo[playerid][pLevel] >= 0)
 			{
@@ -9037,7 +9037,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				SendClientMessageRus(playerid, COLOR_GRAD3,"Максимальный цвет 126");
 				return 1;
 			}
-			if (GetPlayerMoney(playerid) < 5000)
+			if (PlayerInfo[playerid][pCash] < 5000)
 			{
 				SendClientMessageRus(playerid, COLOR_GRAD3,"У вас недостаточно денег ($5000)");
 			}
@@ -9157,7 +9157,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				return 1;
 			}
 			strmid(gunid, tmp, 0, strlen(cmdtext), 255);
-			if (GetPlayerMoney(playerid) > 100000)
+			if (PlayerInfo[playerid][pCash] > 100000)
 			{
 				if (PlayerInfo[playerid][pLevel] >= 18 && (strcmp(gunid, "nrg500", true, strlen(gunid)) == 0))
 				{
@@ -9402,7 +9402,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			SendClientMessageRus(playerid, COLOR_GRAD1, "Вы не авторизованы");
 			return 1;
 		}
-		if (GetPlayerMoney(playerid) < 100000)
+		if (PlayerInfo[playerid][pCash] < 100000)
 		{
 			SendClientMessageRus(playerid, COLOR_GRAD1, "У вас недостаточно денег ($100000)");
 			return 1;
@@ -9720,7 +9720,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			SendClientMessageRus(playerid, COLOR_GRAD6, "Оружейник: никогда не слышал о такой пушке.");
 			return 1;
 		}
-		if((guncharge+ammocharge) > GetPlayerMoney(playerid))
+		if((guncharge+ammocharge) > PlayerInfo[playerid][pCash])
 		{
 			format(infostring, 256, "Недостаточно денег ($%d)",guncharge+ammocharge);
 			SendClientMessageRus(playerid, COLOR_GRAD3, infostring);
@@ -10975,7 +10975,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			SendClientMessageRus(playerid, COLOR_GRAD3, string);
 			return 1;
 		}
-		if (cashdeposit > GetPlayerMoney(playerid) || cashdeposit < 1)
+		if (cashdeposit > PlayerInfo[playerid][pCash] || cashdeposit < 1)
 		{
 			SendClientMessageRus(playerid, COLOR_GRAD2, "У вас нет столько наличных");
 			return 1;
@@ -11156,16 +11156,16 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			return 1;
 		}
 		moneys = strval(tmp);
-		if (moneys > 1000000)
+		if (moneys > 1000000 || moneys > PlayerInfo[playerid][pCash])
 		{
-			SendClientMessageRus(playerid, COLOR_GRAD2, "Извините, ставка не должна превышать $1000000");
+			SendClientMessageRus(playerid, COLOR_GRAD2, "Извините, ставка не должна превышать $1000000 или вашей наличной суммы");
 			return 1;
 		}
 		if (IsPlayerConnected(giveplayerid))
 		{
 			GetPlayerName(giveplayerid, giveplayer, sizeof(giveplayer));
 			GetPlayerName(playerid, sendername, sizeof(sendername));
-			playermoney = GetPlayerMoney(playerid);
+			playermoney = PlayerInfo[playerid][pCash];
 			if (moneys > 0 && playermoney >= moneys)
 			{
 				SafeGivePlayerMoney(playerid,-moneys);
@@ -11242,7 +11242,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		{
 			GetPlayerName(giveplayerid, giveplayer, sizeof(giveplayer));
 			GetPlayerName(playerid, sendername, sizeof(sendername));
-			playermoney = GetPlayerMoney(playerid);
+			playermoney = PlayerInfo[playerid][pCash];
 			if (moneys > 0 && playermoney >= moneys)
 			{
 				SafeGivePlayerMoney(playerid,-moneys);
@@ -11393,7 +11393,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			GameTextForPlayerRus(playerid, "~r~Out Of Stock", 5000, 1);
 			return 1;
 		}
-		if (item == 1 && GetPlayerMoney(playerid) > 500)
+		if (item == 1 && PlayerInfo[playerid][pCash] > 500)
 		{
 			SafeGivePlayerMoney(playerid,-500);
 			BizzInfo[6][bTakings] = BizzInfo[6][bTakings]+500;
@@ -11408,7 +11408,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			GameTextForPlayerRus(playerid, string, 5000, 1);
 			return 1;
 		}
-		if (item == 2 && GetPlayerMoney(playerid) > 1000)
+		if (item == 2 && PlayerInfo[playerid][pCash] > 1000)
 		{
 			SafeGivePlayerMoney(playerid,-1000);
 			BizzInfo[6][bTakings] = BizzInfo[6][bTakings]+1000;
@@ -11495,7 +11495,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			GameTextForPlayerRus(playerid, string, 3000, 3);
 			return 1;
 		}
-		if (item == 3 && GetPlayerMoney(playerid) > 500)
+		if (item == 3 && PlayerInfo[playerid][pCash] > 500)
 		{
 			SafeGivePlayerMoney(playerid,-500);
 			BizzInfo[6][bTakings] = BizzInfo[6][bTakings]+500;
@@ -11508,7 +11508,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			GameTextForPlayerRus(playerid, string, 5000, 1);
 			return 1;
 		}
-		if (item == 4 && GetPlayerMoney(playerid) > 500)
+		if (item == 4 && PlayerInfo[playerid][pCash] > 500)
 		{
 			SafeGivePlayerMoney(playerid,-500);
 			BizzInfo[6][bTakings] = BizzInfo[6][bTakings]+500;
@@ -11521,7 +11521,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			GameTextForPlayerRus(playerid, string, 5000, 1);
 			return 1;
 		}
-		if (item == 5 && GetPlayerMoney(playerid) > 5000)
+		if (item == 5 && PlayerInfo[playerid][pCash] > 5000)
 		{
 			if (gLastCar[playerid] != 0)
 			{
@@ -11548,7 +11548,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			}
 			return 1;
 		}
-		if (item == 6 && GetPlayerMoney(playerid) > 5000)
+		if (item == 6 && PlayerInfo[playerid][pCash] > 5000)
 		{
 			if(PlayerInfo[playerid][pPhousekey] != -1)
 			{
@@ -11575,7 +11575,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			}
 			return 1;
 		}
-		if (item == 7 && GetPlayerMoney(playerid) > 5000)
+		if (item == 7 && PlayerInfo[playerid][pCash] > 5000)
 		{
 			gSpeedo[playerid] = 1;
 			SafeGivePlayerMoney(playerid,-5000);
@@ -11614,7 +11614,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					SendClientMessageRus(playerid, COLOR_WHITE, "Вы уже владеете домом, введите /sellhouse, если хотите продать его.");
 					return 1;
 				}
-				if(GetPlayerMoney(playerid) > HouseInfo[h][hValue])
+				if(PlayerInfo[playerid][pCash] > HouseInfo[h][hValue])
 				{
 					PlayerInfo[playerid][pPhousekey] = h;
 					HouseInfo[h][hOwned] = 1;
@@ -11656,7 +11656,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					SendClientMessageRus(playerid, COLOR_WHITE, "Вы уже владеете домом, введите /sellhouse если хотите продать его.");
 					return 1;
 				}
-				if(GetPlayerMoney(playerid) > HouseInfo[h][hRent])
+				if(PlayerInfo[playerid][pCash] > HouseInfo[h][hRent])
 				{
 					PlayerInfo[playerid][pPhousekey] = h;
 					SafeGivePlayerMoney(playerid,-HouseInfo[h][hRent]);
@@ -11699,7 +11699,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					TogglePlayerControllable(playerid, 1);
 					return 1;
 				}
-				if (GetPlayerMoney(playerid) <  BizzInfo[9][bEntcost])
+				if (PlayerInfo[playerid][pCash] <  BizzInfo[9][bEntcost])
 				{
 					SendClientMessageRus(playerid, COLOR_GRAD2, "У вас нет столько денег");
 					return 1;
@@ -11721,7 +11721,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					TogglePlayerControllable(playerid, 1);
 					return 1;
 				}
-				if (GetPlayerMoney(playerid) <  BizzInfo[8][bEntcost])
+				if (PlayerInfo[playerid][pCash] <  BizzInfo[8][bEntcost])
 				{
 					SendClientMessageRus(playerid, COLOR_GRAD2, "У вас нет столько денег");
 					return 1;
@@ -12044,7 +12044,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						SendClientMessageRus(playerid, COLOR_GRAD5, "Вы должны быть 5 уровня для покупки этого апгрейда");
 						return 1;
 					}
-					if(GetPlayerMoney(playerid) < 50000)
+					if(PlayerInfo[playerid][pCash] < 50000)
 					{
 						SendClientMessageRus(playerid, COLOR_GRAD5, "У вас недостаточно денег");
 						return 1;
@@ -12068,7 +12068,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						SendClientMessageRus(playerid, COLOR_GRAD5, "Вы должны быть 7 уровня для покупки этого апгрейда");
 						return 1;
 					}
-					if(GetPlayerMoney(playerid) < 100000)
+					if(PlayerInfo[playerid][pCash] < 100000)
 					{
 						SendClientMessageRus(playerid, COLOR_GRAD5, "У вас недостаточно денег");
 						return 1;
@@ -12092,7 +12092,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						SendClientMessageRus(playerid, COLOR_GRAD5, "Вы должны быть 3 уровня для покупки этого апгрейда");
 						return 1;
 					}
-					if(GetPlayerMoney(playerid) < 500)
+					if(PlayerInfo[playerid][pCash] < 500)
 					{
 						SendClientMessageRus(playerid, COLOR_GRAD5, "У вас недостаточно денег");
 						return 1;
@@ -12117,7 +12117,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						SendClientMessageRus(playerid, COLOR_GRAD5, "Вы должны быть 3 уровня для покупки этого апгрейда");
 						return 1;
 					}
-					if(GetPlayerMoney(playerid) < 10000)
+					if(PlayerInfo[playerid][pCash] < 10000)
 					{
 						SendClientMessageRus(playerid, COLOR_GRAD5, "У вас недостаточно денег");
 						return 1;
@@ -12142,7 +12142,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						SendClientMessageRus(playerid, COLOR_GRAD5, "Вы должны быть 3 уровня для покупки этого апгрейда");
 						return 1;
 					}
-					if(GetPlayerMoney(playerid) < 10000)
+					if(PlayerInfo[playerid][pCash] < 10000)
 					{
 						SendClientMessageRus(playerid, COLOR_GRAD5, "У вас недостаточно денег");
 						return 1;
@@ -12167,7 +12167,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						SendClientMessageRus(playerid, COLOR_GRAD5, "Вы должны быть 3 уровня для покупки этого апгрейда");
 						return 1;
 					}
-					if(GetPlayerMoney(playerid) < 10000)
+					if(PlayerInfo[playerid][pCash] < 10000)
 					{
 						SendClientMessageRus(playerid, COLOR_GRAD5, "У вас недостаточно денег");
 						return 1;
@@ -12192,7 +12192,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						SendClientMessageRus(playerid, COLOR_GRAD5, "Вы должны быть 3 уровня для покупки этого апгрейда");
 						return 1;
 					}
-					if(GetPlayerMoney(playerid) < 20000)
+					if(PlayerInfo[playerid][pCash] < 20000)
 					{
 						SendClientMessageRus(playerid, COLOR_GRAD5, "У вас недостаточно денег");
 						return 1;
@@ -12217,7 +12217,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						SendClientMessageRus(playerid, COLOR_GRAD5, "Вы должны быть 3 уровня для покупки этого апгрейда");
 						return 1;
 					}
-					if(GetPlayerMoney(playerid) < 20000)
+					if(PlayerInfo[playerid][pCash] < 20000)
 					{
 						SendClientMessageRus(playerid, COLOR_GRAD5, "У вас недостаточно денег");
 						return 1;
@@ -12786,7 +12786,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				{
 					new amount = PlayerHaul[tmpcar][pCapasity]-PlayerHaul[tmpcar][pLoad];
 					new cost = amount*compcost;
-					if(GetPlayerMoney(playerid) >= cost)
+					if()PlayerInfo[playerid][pCash]+500) >= cost)
 					{
 						PlayerHaul[tmpcar][pLoad] = PlayerHaul[tmpcar][pCapasity];
 						format(string, sizeof(string), "Компоненты: %d/%d", PlayerHaul[tmpcar][pLoad],PlayerHaul[tmpcar][pCapasity]);
@@ -12986,7 +12986,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			if (IsPlayerInRangeOfPoint(playerid, 3,BizzInfo[i][bEntrancex], BizzInfo[i][bEntrancey], BizzInfo[i][bEntrancez]))
 			{
 				//printf("Found House :%d",i);
-				if(PlayerInfo[playerid][pPbiskey] == i || GetPlayerMoney(playerid) >= BizzInfo[i][bEntcost] || (BizzInfo[i][bEntcost] > 20000 && PlayerInfo[playerid][pLevel] < 3))
+				if(PlayerInfo[playerid][pPbiskey] == i || PlayerInfo[playerid][pCash] >= BizzInfo[i][bEntcost] || (BizzInfo[i][bEntcost] > 20000 && PlayerInfo[playerid][pLevel] < 3))
 				{
 					if(PlayerInfo[playerid][pPbiskey] != i)
 					{
@@ -13008,7 +13008,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						GameTextForPlayerRus(playerid, string, 5000, 3);
 						if(i == 7) //casino
 						{
-							gSpentCash[playerid] = GetPlayerMoney(playerid);
+							gSpentCash[playerid] = PlayerInfo[playerid][pCash];
 						}
 					}
 					SetPlayerInterior(playerid,BizzInfo[i][bInt]);
@@ -13032,7 +13032,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		{
 			if (IsPlayerInRangeOfPoint(playerid, 3,SBizzInfo[i][sbEntrancex], SBizzInfo[i][sbEntrancey], SBizzInfo[i][sbEntrancez]))
 			{
-				if(PlayerInfo[playerid][pPbiskey] == i || GetPlayerMoney(playerid) >= SBizzInfo[i][sbEntcost] || (SBizzInfo[i][sbEntcost] > 20000 && PlayerInfo[playerid][pLevel] < 3))
+				if(PlayerInfo[playerid][pPbiskey] == i || PlayerInfo[playerid][pCash] >= SBizzInfo[i][sbEntcost] || (SBizzInfo[i][sbEntcost] > 20000 && PlayerInfo[playerid][pLevel] < 3))
 				{
 					if(PlayerInfo[playerid][pPbiskey] != i)
 					{
@@ -13123,7 +13123,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							return 1;
 						}
 						SafeGivePlayerMoney(playerid,-SBizzInfo[i][sbEntcost]);
-						gSpentCash[playerid] = GetPlayerMoney(playerid);
+						gSpentCash[playerid] = PlayerInfo[playerid][pCash];
 						SBizzInfo[i][sbProd]--;
 						SBizzInfo[i][sbTakings] = SBizzInfo[i][sbTakings]+SBizzInfo[i][sbEntcost];
 						new dood[MAX_PLAYER_NAME];
@@ -13159,8 +13159,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			new oldcash = gSpentCash[playerid];
 			if(oldcash > 0)
 			{
-				new Total = GetPlayerMoney(playerid) - oldcash;
-				printf("Total %d = GetPlayerMoney(playerid) %d - oldcash %d",Total,GetPlayerMoney(playerid),oldcash);
+				new Total = PlayerInfo[playerid][pCash] - oldcash;
+				printf("Total %d = PlayerInfo[playerid][pCash] %d - oldcash %d",Total,PlayerInfo[playerid][pCash],oldcash);
 				new name[MAX_PLAYER_NAME];
 				SBizzInfo[1][sbTakings] = SBizzInfo[1][sbTakings]+Total;
 				GetPlayerName(playerid, name, sizeof(name));
@@ -13207,8 +13207,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					new oldcash = gSpentCash[playerid];
 					if(oldcash > 0)
 					{
-						new Total = GetPlayerMoney(playerid) - oldcash;
-						printf("Total %d = GetPlayerMoney(playerid) %d - oldcash %d",Total,GetPlayerMoney(playerid),oldcash);
+						new Total = PlayerInfo[playerid][pCash] - oldcash;
+						printf("Total %d = PlayerInfo[playerid][pCash] %d - oldcash %d",Total,PlayerInfo[playerid][pCash],oldcash);
 						new name[MAX_PLAYER_NAME];
 						BizzInfo[i][bTakings] = BizzInfo[i][bTakings]+Total;
 						GetPlayerName(playerid, name, sizeof(name));
@@ -13266,7 +13266,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				TelePos[playerid][0] = 0.0;
 				TelePos[playerid][1] = 0.0;
 				SetVehiclePos(tmpcar, 1040.6,-1021.0,31.7);
-				gSpentCash[playerid] = GetPlayerMoney(playerid);
+				gSpentCash[playerid] = PlayerInfo[playerid][pCash];
 				Spectate[playerid] = 500;
 				GameTextForPlayerRus(playerid, "~w~To Exit type ~r~/exit~n~-$1000", 5000, 1);
 			//PlayerInfo[playerid][pInt] = HouseInfo[i][hInt];
@@ -13309,7 +13309,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				TelePos[playerid][0] = 0.0;
 				TelePos[playerid][1] = 0.0;
 				SetVehiclePos(tmpcar, -2720.5,217.5,4.1);
-				gSpentCash[playerid] = GetPlayerMoney(playerid);
+				gSpentCash[playerid] = PlayerInfo[playerid][pCash];
 				Spectate[playerid] = 500;
 				GameTextForPlayerRus(playerid, "~w~To Exit type ~r~/exit~n~-$1000", 5000, 1);
 			//PlayerInfo[playerid][pInt] = HouseInfo[i][hInt];
@@ -13352,7 +13352,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				TelePos[playerid][0] = 0.0;
 				TelePos[playerid][1] = 0.0;
 				SetVehiclePos(tmpcar, 2644.6,-2044.9,13.3);
-				gSpentCash[playerid] = GetPlayerMoney(playerid);
+				gSpentCash[playerid] = PlayerInfo[playerid][pCash];
 				Spectate[playerid] = 500;
 				GameTextForPlayerRus(playerid, "~w~To Exit type ~r~/exit~n~-$1000", 5000, 1);
 			//PlayerInfo[playerid][pInt] = HouseInfo[i][hInt];
@@ -13618,7 +13618,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					SendClientMessageRus(playerid, COLOR_GRAD5, string);
 					return 1;
 				}
-				if(GetPlayerMoney(playerid) > SBizzInfo[b][sbValue])
+				if((PlayerInfo[playerid][pCash]+1000) > SBizzInfo[b][sbValue])
 				{
 					PlayerInfo[playerid][pPbiskey] = b+100;
 					SBizzInfo[b][sbOwned] = 1;
@@ -13650,7 +13650,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					SendClientMessageRus(playerid, COLOR_GRAD5, string);
 					return 1;
 				}
-				if(GetPlayerMoney(playerid) > BizzInfo[b][bValue])
+				if((PlayerInfo[playerid][pCash]+1000) > BizzInfo[b][bValue])
 				{
 					PlayerInfo[playerid][pPbiskey] = b;
 					BizzInfo[b][bOwned] = 1;
@@ -14083,7 +14083,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			SendClientMessageRus(playerid, COLOR_GRAD3, string);
 			return 1;
 		}
-		if (cashdeposit > GetPlayerMoney(playerid) || cashdeposit < 1)
+		if (cashdeposit > PlayerInfo[playerid][pCash] || cashdeposit < 1)
 		{
 			SendClientMessageRus(playerid, COLOR_GRAD2, "У вас нет столько денег");
 			return 1;
@@ -14163,7 +14163,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					SendClientMessageRus(playerid, COLOR_GRAD5, "Вы должны быть 5 уровня, чтобы купить аптечку");
 					return 1;
 				}
-				if(GetPlayerMoney(playerid) < 50000)
+				if(PlayerInfo[playerid][pCash] < 50000)
 				{
 					SendClientMessageRus(playerid, COLOR_GRAD5, "У вас недостаточно денег");
 					return 1;
@@ -14180,7 +14180,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					SendClientMessageRus(playerid, COLOR_GRAD5, "Вы должны быть 8 уровня, чтобы купить бронежилет");
 					return 1;
 				}
-				if(GetPlayerMoney(playerid) < 100000)
+				if(PlayerInfo[playerid][pCash] < 100000)
 				{
 					SendClientMessageRus(playerid, COLOR_GRAD5, "У вас недостаточно денег");
 					return 1;
@@ -14665,7 +14665,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						Spectate[playerid] = i;
 						new sstring[256];
 						GetPlayerName(i, giveplayer, sizeof(giveplayer));
-						new cash =  GetPlayerMoney(i);
+						new cash =  PlayerInfo[i][pCash];
 						format(sstring, sizeof(sstring), "Recon: (%d) %s $%d H:%.1f ",i,giveplayer,cash,health);
 						SendClientMessageRus(playerid, COLOR_GREEN, sstring);
 						return 1;
@@ -14686,7 +14686,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						Spectate[playerid] = i;
 						new sstring[256];
 						GetPlayerName(i, giveplayer, sizeof(giveplayer));
-						new cash =  GetPlayerMoney(i);
+						new cash =  PlayerInfo[i][pCash];
 						format(sstring, sizeof(sstring), "Recon: (%d) %s $%d H:%.1f",i,giveplayer,cash,health);
 						SendClientMessageRus(playerid, COLOR_GREEN, sstring);
 						return 1;
@@ -14728,7 +14728,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			GetPlayerHealth(Spectate[playerid], health);
 			new sstring[256];
 			GetPlayerName(Spectate[playerid], giveplayer, sizeof(giveplayer));
-			new cash =  GetPlayerMoney(Spectate[playerid]);
+			new cash =  PlayerInfo[Spectate[playerid]][pCash]);
 			if (PlayerInfo[playerid][pAdmin] >= 1)
 			{
 				format(sstring, sizeof(sstring), "Recon: (%d) %s $%d H:%.0f",Spectate[playerid],giveplayer,cash,health);
@@ -15741,7 +15741,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			SendClientMessageRus(playerid, COLOR_GRAD2, "Вы слишком далеко от нужного бизнеса");
 			return 1;
 		}
-		if(GetPlayerMoney(playerid) < SBizzInfo[sbiz][sbEntcost])
+		if(PlayerInfo[playerid][pCash] < SBizzInfo[sbiz][sbEntcost])
 		{
 			SendClientMessageRus(playerid, COLOR_GRAD2, "У вас недостаточно денег");
 			return 1;
@@ -18077,7 +18077,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		{
 			GetPlayerName(giveplayerid, giveplayer, sizeof(giveplayer));
 			GetPlayerName(playerid, sendername, sizeof(sendername));
-			playermoney = GetPlayerMoney(playerid);
+			playermoney = PlayerInfo[playerid][pCash];
 			if (moneys > 0 && playermoney >= moneys)
 			{
 				SafeGivePlayerMoney(playerid, (0 - moneys));
@@ -18912,8 +18912,8 @@ public InHouse()
 											SetPlayerPos(i, 1520.1,-1473.2,9.2);
 										}
 										new oldcash = gSpentCash[i];
-										new Total = GetPlayerMoney(i) - oldcash;
-										printf("Total %d = GetPlayerMoney(playerid) %d - oldcash %d",Total,GetPlayerMoney(i),oldcash);
+										new Total = PlayerInfo[i][pCash] - oldcash;
+										printf("Total %d = PlayerInfo[i][pCash] %d - oldcash %d",Total,PlayerInfo[i][pCash],oldcash);
 										new name[MAX_PLAYER_NAME];
 										SBizzInfo[1][sbTakings] = SBizzInfo[1][sbTakings]-Total;
 										GetPlayerName(i, name, sizeof(name));
@@ -18943,8 +18943,8 @@ public InHouse()
 											SetPlayerPos(i, HouseCarSpawns[tmpcar-1][0], HouseCarSpawns[tmpcar-1][1], HouseCarSpawns[tmpcar-1][2]);
 										}
 										new oldcash = gSpentCash[i];
-										new Total = GetPlayerMoney(i) - oldcash;
-										printf("Total %d = GetPlayerMoney(playerid) %d - oldcash %d",Total,GetPlayerMoney(i),oldcash);
+										new Total = PlayerInfo[i][pCash] - oldcash;
+										printf("Total %d = GetPlayerMoney(playerid) %d - oldcash %d",Total,PlayerInfo[i][pCash],oldcash);
 										new name[MAX_PLAYER_NAME];
 										SBizzInfo[1][sbTakings] = SBizzInfo[1][sbTakings]-Total;
 										GetPlayerName(i, name, sizeof(name));
@@ -18964,8 +18964,8 @@ public InHouse()
 									if(house == 7+99 && PlayerInfo[i][pPbiskey] != 7) //casino) //casino
 									{
 										new oldcash = gSpentCash[i];
-										new Total = GetPlayerMoney(i) - oldcash;
-										printf("Total %d = GetPlayerMoney(playerid) %d - oldcash %d",Total,GetPlayerMoney(i),oldcash);
+										new Total = PlayerInfo[i][pCash] - oldcash;
+										printf("Total %d = GetPlayerMoney(playerid) %d - oldcash %d",Total,PlayerInfo[i][pCash],oldcash);
 										new name[MAX_PLAYER_NAME];
 										BizzInfo[7][bTakings] = BizzInfo[7][bTakings]-Total;
 										GetPlayerName(i, name, sizeof(name));
