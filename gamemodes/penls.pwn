@@ -12786,7 +12786,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				{
 					new amount = PlayerHaul[tmpcar][pCapasity]-PlayerHaul[tmpcar][pLoad];
 					new cost = amount*compcost;
-					if()PlayerInfo[playerid][pCash]+500) >= cost)
+					if((PlayerInfo[playerid][pCash]+500) >= cost)
 					{
 						PlayerHaul[tmpcar][pLoad] = PlayerHaul[tmpcar][pCapasity];
 						format(string, sizeof(string), "Компоненты: %d/%d", PlayerHaul[tmpcar][pLoad],PlayerHaul[tmpcar][pCapasity]);
