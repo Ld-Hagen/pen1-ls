@@ -24,6 +24,7 @@ new gTeam[MAX_PLAYERS]; // Tracks the team assignment for each player
 #define CHECKPOINT_CARDROP 11
 #define CHECKPOINT_HOME 12
 #define CHECKPOINT_DM 13
+#define CHECKPOINT_DUEL 14
 #define COLOR_GRAD1 0xB4B5B7FF
 #define COLOR_GRAD2 0xBFC0C2FF
 #define COLOR_GRAD3 0xCBCCCEFF
@@ -337,7 +338,10 @@ forward SetCamBack(playerid);
 forward AddsOn();
 forward SetVehicleParamsForPlayerEx(vehicleid, playerid, para1, para2);
 forward SetPlayerCheckpointFixed(playerid, Float:px, Float:py, Float:pz, Float:radius);
+forward LoadDuel(playerid,tid,gun1,gun2,gun3,stage);
+forward FindDuelCP(playerid);
 //------------------------------------------------------------------------------------------------------
+new dgun[MAX_PLAYERS][3], frozen[MAX_PLAYERS], dcp[MAX_PLAYERS];
 new vParams[MAX_VEHICLES+1][MAX_PLAYERS];
 new allowedchars[MAX_ALLOWED_CHARS] = {
 	'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z', //26
@@ -495,6 +499,7 @@ new cchargetime = 10;
 new txtcost = 1;
 new offhook;
 new pickups;
+new duel[MAX_PLAYERS];
 new randomrace = 0;
 new nocarcash = 0;
 new skydivecount = 60;
@@ -629,6 +634,16 @@ new Float:gRandomPlayerSpawns[1][3] = {
 {2191.5950,-1277.3251,25.0362}
 };
 */
+
+new Float:DuelSpawns[6][4] =
+{
+{1820.1898,-1099.0941,24.0781,358.5028},//1
+{1820.1943,-1134.3278,24.0781,179.4428},
+{990.3517,-1350.3186,13.3708,91.6436},//2
+{1025.4862,-1351.2198,13.7266,269.3053},
+{1888.8384,-2290.7144,13.5469,85.0781},//3
+{1942.4803,-2289.0803,13.5469,271.1999}
+};
 
 new Float:gRandomDMSpawns[21][3] = {
 {-2414.0,1551.8,2.1}, // 1
@@ -2219,6 +2234,8 @@ public OnPlayerConnect(playerid)
 	Mobile[playerid] = -1;
 	Spectate[playerid] = -1;
 	Unspec[playerid][sLocal] = -1;
+	dcp[playerid] = 0;
+	duel[playerid] = -1;
     gSkyDive[playerid] = 0;
 	TVMode[playerid] = 0;
     gLastCar[playerid] = 0;
@@ -2544,7 +2561,16 @@ public OnPlayerDeath(playerid, killerid, reason)
 	PlayerInfo[playerid][pLocal] = -1;
 	GetPlayerPos(playerid, px, py, pz);
 	new sgun, sammo;
-	
+	if(duel[playerid] > -1)
+	{
+		ResetPlayerWeapons(killerid);
+		GivePlayerWeapon(killerid, 32, 100);
+		GivePlayerWeapon(killerid, 24, 30);
+		dcp[playerid] = 0;
+		dcp[killerid] = 0;
+		duel[playerid] = -1;
+		duel[killerid] = -1;
+	}
 	if(killerid != INVALID_PLAYER_ID)
 	{
 		if(GetPlayerState(killerid) == 2 && playerid != gPublicEnemy)
@@ -3882,6 +3908,18 @@ public OnPlayerEnterCheckpoint(playerid)
 	new name[MAX_PLAYER_NAME];
 	switch (gPlayerCheckpointStatus[playerid])
 	{
+		case CHECKPOINT_DUEL:
+		    {
+		        SetPlayerPos(playerid, DuelSpawns[dcp[playerid]][0], DuelSpawns[dcp[playerid]][1], DuelSpawns[dcp[playerid]][2]);
+		        SetPlayerFacingAngle(playerid, DuelSpawns[dcp[playerid]][3]);
+		        TogglePlayerControllable(playerid,0);
+		        dcp[playerid] = 1;
+				new tid = duel[playerid] - 3000;
+		      	if(dcp[tid] == 1)   return LoadDuel(playerid, tid, dgun[playerid][0], dgun[playerid][1], dgun[playerid][2], 3);
+				tid-=1000;
+		      	if(dcp[tid] == 1)  return LoadDuel(playerid, tid, dgun[tid][0], dgun[tid][1], dgun[tid][2], 3);
+		      	return SendClientMessageRus(playerid, COLOR_YELLOW, "Ждите соперника");
+		    }
 		case CHECKPOINT_PICKUP:
 		    {
 				if(GetPlayerState(playerid) != 1)
@@ -7006,7 +7044,7 @@ public OnGameModeInit()
 	//CreateVehicle(522, 1228.7,-1266.2,64.5,90.0,0, 6, -1);//fcr
 	//CreateVehicle(487, 1767.0,-2285.9,26.9,359.9,-1, -1, -1); //airportmavrik
 	//CreateVehicle(577,1585.1444,1187.9630,10.7343,179.9691,-1,-1,-1); // at400 = crash when you walk up to it
-	
+
 	CreateVehicle(522,1542.8453,-1362.2898,329.0298,357.4759,0,3, 300); // NRG1
 	CreateVehicle(522,1543.6589,-1362.3474,329.0296,359.5350,3,0, 300); // NRG2
 	CreateVehicle(522,1544.4764,-1362.3495,329.0295,359.1479,0,3, 300); // NRG3
@@ -7020,7 +7058,7 @@ public OnGameModeInit()
 	CreateVehicle(521,1390.4741,-1256.2101,33.1261,177.2685,0,6, 300); // FCR2
 	CreateVehicle(521,1391.7761,-1256.0663,33.1258,185.0072,6,0, 300); // FCR3
 	CreateVehicle(521,1393.1321,-1256.0179,33.1230,179.2145,0,6, 300); // FCR4
-	
+
 	for(new h = 0; h < sizeof(HouseInfo); h++)
 	{
 		/*
@@ -8514,7 +8552,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		}
 	    return 1;
 	}
-	
+
 //-------------------------------[Pay]--------------------------------------------------------------------------
 	if(strcmp(cmd, "/pay", true) == 0)
 	{
@@ -9738,6 +9776,109 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		printf("%s", string);
 		PayLog(string);
 		return 1;
+	}
+
+	if (strcmp(cmd, "/duel", true) == 0 && PlayerInfo[playerid][pAdmin] > 1000)
+	{
+		if(GetPlayerInterior(playerid)!=0)
+		{
+			SendClientMessageRus(playerid, COLOR_WHITE,"Выйдите на улицу.");
+			return 1;
+		}
+		tmp = strtok(cmdtext, idx);
+		if(!strlen(tmp))
+		{
+			format(string, sizeof(string), "ИСПОЛЬЗОВАНИЕ: /duel [id соперника] [id оружия 1] [id оружия 2] [id оружия 3]");
+			SendClientMessageRus(playerid, COLOR_GRAD2,string);
+			SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
+			SendClientMessageRus(playerid, COLOR_WHITE,"*** Оружие ***");
+			SendClientMessageRus(playerid, COLOR_WHITE, "Оружие: parachute (46), golfclub (2), nightstick (3), knife (4), baseballbat (5), shovel (6), poolcue (7),");
+			SendClientMessageRus(playerid, COLOR_WHITE, "Оружие: purpledildo (10), whitedildo (11), longwhitedildo (12), whitedildo2 (13), flowers (14), cane (15),");
+			SendClientMessageRus(playerid, COLOR_WHITE, "Оружие: sdpistol (23), colt45 (22), deagle (24), tec9 (32), uzi (28), mp5 (29),");
+			SendClientMessageRus(playerid, COLOR_WHITE, "Оружие: shotgun (27), spas12 (25), sawnoff (26), ak47 (30), m4 (31), rifle (33),");
+			SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
+			return 1;
+		}
+		new tid=strval(tmp);
+		if(!IsPlayerConnected(tid) || gPlayerLogged[tid] == 0)  return SendClientMessageRus(playerid, COLOR_RED, "Этого игрока нет в онлайне");
+		tmp = strtok(cmdtext, idx);
+		if(!strlen(tmp))
+		{
+			format(string, sizeof(string), "ИСПОЛЬЗОВАНИЕ: /duel [id соперника] [id оружия 1] [id оружия 2 (можно упустить)] [id оружия 3 (можно упустить)]");
+			SendClientMessageRus(playerid, COLOR_GRAD2,string);
+			SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
+			SendClientMessageRus(playerid, COLOR_WHITE,"*** Оружие ***");
+			SendClientMessageRus(playerid, COLOR_WHITE, "Оружие: parachute (46), golfclub (2), nightstick (3), knife (4), baseballbat (5), shovel (6), poolcue (7),");
+			SendClientMessageRus(playerid, COLOR_WHITE, "Оружие: purpledildo (10), whitedildo (11), longwhitedildo (12), whitedildo2 (13), flowers (14), cane (15),");
+			SendClientMessageRus(playerid, COLOR_WHITE, "Оружие: sdpistol (23), colt45 (22), deagle (24), tec9 (32), uzi (28), mp5 (29),");
+			SendClientMessageRus(playerid, COLOR_WHITE, "Оружие: shotgun (27), spas12 (25), sawnoff (26), ak47 (30), m4 (31), rifle (33),");
+			SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
+			return 1;
+		}
+		dgun[playerid][0] = strval(tmp);
+		if(!((dgun[playerid][0] > 1 && dgun[playerid][0] < 8) || (dgun[playerid][0] > 9 && dgun[playerid][0] < 16) || (dgun[playerid][0] > 21 && dgun[playerid][0] < 34)))    return SendClientMessageRus(playerid,COLOR_RED,"Неверно указан id первого оружия");
+		tmp = strtok(cmdtext, idx);
+		if(strlen(tmp)>0)
+		{
+			dgun[playerid][1] = strval(tmp);
+			if(!((dgun[playerid][1] > 1 && dgun[playerid][1] < 8) || (dgun[playerid][1] > 9 && dgun[playerid][1] < 16) || (dgun[playerid][1] > 21 && dgun[playerid][1] < 34)))    return SendClientMessageRus(playerid,COLOR_RED,"Неверно указан id второго оружия");
+		}
+		else
+		{
+		    dgun[playerid][1] = -1;
+		}
+		tmp = strtok(cmdtext, idx);
+		if(strlen(tmp)>0)
+		{
+			dgun[playerid][2] = strval(tmp);
+			if(!((dgun[playerid][2] > 1 && dgun[playerid][2] < 8) || (dgun[playerid][2] > 9 && dgun[playerid][2] < 16) || (dgun[playerid][2] > 21 && dgun[playerid][2] < 34)))    return SendClientMessageRus(playerid,COLOR_RED,"Неверно указан id третьего оружия");
+		}
+		else
+		{
+		    dgun[playerid][2] = -1;
+		}
+		return LoadDuel(playerid,tid,0,0,0,0);
+	}
+	if (strcmp(cmd, "/cancel", true) == 0)
+	{
+	    if(frozen[playerid] == 0)	TogglePlayerControllable(playerid,1);
+	    if(duel[playerid] > 999 && duel[playerid] < 2001)
+	    {
+			duel[duel[playerid]-1000] = -1;
+			duel[playerid] = -1;
+			SendClientMessageRus(playerid, COLOR_YELLOW, "Ваша дуэль была отменена");
+			return SendClientMessageRus(duel[playerid-1000], COLOR_YELLOW, "Ваша дуэль была отменена");
+	    }
+	    if(duel[playerid] > 1999 && duel[playerid] < 3001)
+	    {
+			duel[duel[playerid]-2000] = -1;
+			duel[playerid] = -1;
+			SendClientMessageRus(playerid, COLOR_YELLOW, "Ваша дуэль была отменена");
+			return SendClientMessageRus(duel[playerid-2000], COLOR_YELLOW, "Ваша дуэль была отменена");
+	    }
+	    if(duel[playerid] > 2999 && duel[playerid] < 4001)
+	    {
+			duel[duel[playerid]-3000] = -1;
+			duel[playerid] = -1;
+			SendClientMessageRus(playerid, COLOR_YELLOW, "Ваша дуэль была отменена");
+			return SendClientMessageRus(duel[playerid-3000], COLOR_YELLOW, "Ваша дуэль была отменена");
+	    }
+   	    if(duel[playerid] > 3999 && duel[playerid] < 5001)
+	    {
+			duel[duel[playerid]-4000] = -1;
+			duel[playerid] = -1;
+			SendClientMessageRus(playerid, COLOR_YELLOW, "Ваша дуэль была отменена");
+			return SendClientMessageRus(duel[playerid-4000], COLOR_YELLOW, "Ваша дуэль была отменена");
+	    }
+	    return SendClientMessageRus(playerid, COLOR_YELLOW, "Дуэль и так никто не предлагал");
+	}
+	if (strcmp(cmd, "/accept", true) == 0)
+	{
+	    if(duel[playerid] > 1999 && duel[playerid] < 3001)
+	    {
+			return LoadDuel(duel[playerid]-2000, playerid, 0, 0, 0, 1);
+	    }
+	    return SendClientMessageRus(playerid, COLOR_YELLOW, "Дуэль никто не предлагал");
 	}
 	if (strcmp(cmd, "/upgrade", true) == 0)
 	{
@@ -14728,7 +14869,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			GetPlayerHealth(Spectate[playerid], health);
 			new sstring[256];
 			GetPlayerName(Spectate[playerid], giveplayer, sizeof(giveplayer));
-			new cash =  PlayerInfo[Spectate[playerid]][pCash]);
+			new cash =  PlayerInfo[Spectate[playerid]][pCash];
 			if (PlayerInfo[playerid][pAdmin] >= 1)
 			{
 				format(sstring, sizeof(sstring), "Recon: (%d) %s $%d H:%.0f",Spectate[playerid],giveplayer,cash,health);
@@ -16556,7 +16697,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			GetPlayerPos(playa, slx, sly, slz);
 			SetPlayerPos(playa, slx, sly, slz+5);
 			PlaySoundAll(playa, 1130, slx, sly, slz+5);
-			
+
 			format(string, sizeof(string), "AdmCmd: %s Silent Slaps %s",sendername,  giveplayer);
 			printf("%s",string);
 			format(string, sizeof(string), "AdmCmd: %s was Silently Slap",giveplayer);
@@ -16713,6 +16854,14 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		}
 		return 1;
 	}
+    if(strcmp(cmd, "/findduelcp", true) == 0 && PlayerInfo[playerid][pAdmin] == 1338)
+	{
+	    new cpp[4];
+	    new cp = FindDuelCP(playerid)*2;
+		SetPlayerCheckpointFixed(playerid, DuelSpawns[cp][0], DuelSpawns[cp][1], DuelSpawns[cp][2], 1);
+		format(cpp, 4 , "%d", cp);
+		return SendClientMessageRus(playerid, COLOR_YELLOW, "Чекпойнт определен");
+	}
 //----------------------------------[Freeze]------------------------------------------------
 	if(strcmp(cmd, "/freeze", true) == 0)
 	{
@@ -16741,10 +16890,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		if (PlayerInfo[playerid][pAdmin] >= 2)
 		{
 			TogglePlayerControllable(playa, 0);
-			format(string, sizeof(string), "AdmCmd: %s Freezes %s",sendername,  giveplayer);
+			format(string, sizeof(string), "AdmCmd: %s заморозил %s",sendername,  giveplayer);
 			printf("%s",string);
-			format(string, sizeof(string), "AdmCmd: %s was Frozen by %s",giveplayer ,sendername);
+			format(string, sizeof(string), "AdmCmd: %s был заморожен админом %s",giveplayer ,sendername);
 			SendClientMessageToAllRus(COLOR_RED, string);
+			frozen[playa] = 1;
 		}
 		else
 		{
@@ -16780,6 +16930,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			printf("%s",string);
 			format(string, sizeof(string), "AdmCmd: %s was SFrozen",giveplayer);
 			SendClientMessageRus(playerid, COLOR_GRAD1, string);
+			frozen[playa] = 1;
 		}
 		else
 		{
@@ -16788,7 +16939,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		return 1;
 	}
 //----------------------------------[Thaw]------------------------------------------------
-	if(strcmp(cmd, "/thaw", true) == 0)
+	if(strcmp(cmd, "/thaw", true) == 0 || strcmp(cmd, "/unfreeze", true) == 0)
 	{
 		tmp = strtok(cmdtext, idx);
 		if(!strlen(tmp))
@@ -16810,10 +16961,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		if (PlayerInfo[playerid][pAdmin] >= 1)
 		{
 			TogglePlayerControllable(playa, 1);
-			format(string, sizeof(string), "AdmCmd: %s Thaw %s",sendername,  giveplayer);
+			format(string, sizeof(string), "AdmCmd: %s разморозил %s",sendername,  giveplayer);
 			printf("%s",string);
-			format(string, sizeof(string), "AdmCmd: %s was Thawed by %s",giveplayer ,sendername);
+			format(string, sizeof(string), "AdmCmd: %s был разморожен админом %s",giveplayer ,sendername);
 			SendClientMessageToAllRus(COLOR_RED, string);
+			frozen[playa] = 0;
 		}
 		else
 		{
@@ -17938,7 +18090,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
   		SendClientMessageRus(playerid, COLOR_YELLOW,"OWNER: [NB]Ryankilla Co-Owner: [:Ai:]UrAdEaDmAn");
 		SendClientMessageRus(playerid, COLOR_YELLOW,"CURRENT ADMINS: [oasis]Kj, [SiN]Z!GGY & [NB]Ewan");
  		if (gTeam[playerid] == 2)
-		
+
 		return 1;
 		}
 //----------------------------------[HELP]-----------------------------------------------
@@ -18752,7 +18904,7 @@ public AntiTeleport()
 				TelePos[i][0] = TelePos[i][3];
 				TelePos[i][1] = TelePos[i][4];
 			}
-			
+
 /////////////Money Anticheat/////////////////
 			money = GetPlayerMoney(i);
 			if(money > PlayerInfo[i][pCash] + 500) GivePlayerMoney(i, PlayerInfo[i][pCash] - money);
@@ -19354,4 +19506,74 @@ public SetPlayerCheckpointFixed(playerid, Float:px, Float:py, Float:pz, Float:ra
 {
 	DisablePlayerCheckpoint(playerid);
 	return SetPlayerCheckpoint(playerid, Float:px, Float:py, Float:pz, Float:radius);
+}
+
+public LoadDuel(playerid,tid,gun1,gun2,gun3,stage)
+{
+	if(duel[playerid] > -1)   return SendClientMessageRus(playerid, COLOR_RED, "Сначала завершите свою дуэль");
+	if(duel[tid] > -1)   return SendClientMessageRus(playerid, COLOR_RED, "Игрок еще не завершил свою дуэль");
+	new hmsg[128], pname[64];
+	switch(stage)
+	{
+		case 0:
+		{
+		    format(hmsg,128,"Вы предложили дуэль игроку %s. Ждите его согласия (/cancel - отменить).", GetPlayerName(tid, pname, 64));
+	        SendClientMessageRus(playerid, COLOR_YELLOW, hmsg);
+	        duel[playerid] = 1000+tid;
+	        duel[tid] = 2000+playerid;
+   		    format(hmsg,128,"Внимание! %s (%d) предложил Вам дуэль. Вы можете согласиться (/accept) отказаться (/candel)", GetPlayerName(playerid, pname, 64), playerid);
+	        SendClientMessageRus(playerid, COLOR_YELLOW, hmsg);
+		}
+		case 1:
+		{
+		    format(hmsg,128,"Внимание! %s дал согласие на дуэль. Следуйте на маркер.", GetPlayerName(tid, pname, 64));
+		    SendClientMessageRus(playerid, COLOR_YELLOW, hmsg);
+		    SendClientMessageRus(playerid, COLOR_YELLOW, "Дуэль принята! Следуйте на маркер!");
+			duel[playerid]+=2000;
+			duel[tid]+=2000;
+			new cp = FindDuelCP(playerid);
+			SetPlayerCheckpointFixed(playerid, DuelSpawns[cp][0], DuelSpawns[cp][1], DuelSpawns[cp][2], 1);
+			SetPlayerCheckpointFixed(tid, DuelSpawns[cp+1][0], DuelSpawns[cp+1][1], DuelSpawns[cp+1][2], 1);
+			gPlayerCheckpointStatus[playerid] = CHECKPOINT_DUEL;
+			gPlayerCheckpointStatus[tid] = CHECKPOINT_DUEL;
+			dcp[playerid] = cp;
+			dcp[tid] = cp+1;
+		}
+		case 2:
+		{
+			SendClientMessageRus(playerid, COLOR_YELLOW, "Дуэль началась!!!");
+			SendClientMessageRus(tid, COLOR_YELLOW, "Дуэль началась!!!");
+			TogglePlayerControllable(playerid, 1);
+			TogglePlayerControllable(tid, 1);
+		}
+		case 3:
+		{
+			GivePlayerWeapon(playerid, gun1, 10000);
+			GivePlayerWeapon(playerid, gun2, 10000);
+			GivePlayerWeapon(playerid, gun3, 10000);
+  			GivePlayerWeapon(tid, gun1, 10000);
+			GivePlayerWeapon(tid, gun2, 10000);
+			GivePlayerWeapon(tid, gun3, 10000);
+			SendClientMessageRus(playerid, COLOR_YELLOW, "Все готово! Дуэль начинается через три секунды!");
+			SendClientMessageRus(tid, COLOR_YELLOW, "Все готово! Дуэль начинается через три секунды!");
+			SetTimerEx("LoadDuel", 3000, 0, "dddddd", playerid, tid, 0,0,0,2);
+		}
+	}
+	return stage;
+}
+
+public FindDuelCP(playerid)
+{
+	new Float:x, Float:y, Float:z, choise, Float:mind=99999999, Float:distance;
+	GetPlayerPos(playerid, x, y, z);
+	for(new circle=0; circle<3; circle++)
+	{
+		distance = ((DuelSpawns[circle*2][0]-x)*(DuelSpawns[circle*2][0]-x))+((DuelSpawns[circle*2][1]-y)*(DuelSpawns[circle*2][1]-y));
+		if(mind > distance)
+		{
+		    mind = distance;
+			choise = circle;
+		}
+	}
+	return choise;
 }
