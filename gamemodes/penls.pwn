@@ -8524,7 +8524,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			LinkVehicleToInterior(carid,carint);
 			SetVehicleNumberPlate(carid,"-ADMIN");
 	     	SetVehicleToRespawn(carid);
-	     	CreatedCars[carid] = 1;
+            PutPlayerInVehicle(playerid,carid,0);
+            CreatedCars[carid] = 1;
 			CreatedCar ++;
 			format(string, sizeof(string), " Машина %d появилась.", carid);
 			SendClientMessageRus(playerid, COLOR_GREY, string);
@@ -9548,49 +9549,49 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		new guncharge;
 		new ammocharge;
 		new location = PlayerInfo[playerid][pLocal];
-		if(location < 99 || location == -1)
+		if(location < 99 || location == 255)
 		{
-			SendClientMessageRus(playerid, COLOR_WHITE,"Вы не в оружейном магазине.");
+			SendClientMessage(playerid, COLOR_WHITE,"Вы не в оружейном магазине");
 			return 1;
 		}
 		new mod = (BizzInfo[location-99][bPriceMod]);
 		tmp = strtok(cmdtext, idx);
 		if(!strlen(tmp))
 		{
-			format(string, sizeof(string), "ИСПОЛЬЗОВАНИЕ: /buygun [gunname] [ammoamount]");
-			SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
-			SendClientMessageRus(playerid, COLOR_WHITE,"*** Guns & Ammo ***");
-			SendClientMessageRus(playerid, COLOR_GRAD2,string);
-			format(gunstring1, 256, "Оружие: parachute ($%d) golfclub ($%d) nightstick ($%d) knife ($%d) baseballbat ($%d) shovel ($%d) poolcue ($%d)",
+			format(string, sizeof(string), "USAGE: /buygun [gunname] [ammoamount]");
+			SendClientMessage(playerid, COLOR_GREEN,"_______________________________________");
+			SendClientMessage(playerid, COLOR_WHITE,"*** Guns & Ammo ***");
+			SendClientMessage(playerid, COLOR_GRAD2,string);
+			format(gunstring1, 256, "Weapons: parachute ($%d) golfclub ($%d) nightstick ($%d) knife ($%d) baseballbat ($%d) shovel ($%d) poolcue ($%d)",
 			GunPrice[0][0]/100*mod,GunPrice[1][0]/100*mod,GunPrice[2][0]/100*mod,GunPrice[3][0]/100*mod,GunPrice[4][0]/100*mod,GunPrice[5][0]/100*mod,GunPrice[6][0]/100*mod);
-			SendClientMessageRus(playerid, COLOR_GRAD3, gunstring1);
-			format(gunstring2, 256, "Оружие: purpledildo ($%d) whitedildo ($%d) longwhitedildo ($%d) whitedildo2 ($%d) flowers ($%d) cane",
+			SendClientMessage(playerid, COLOR_GRAD3, gunstring1);
+			format(gunstring2, 256, "Weapons: purpledildo ($%d) whitedildo ($%d) longwhitedildo ($%d) whitedildo2 ($%d) flowers ($%d) cane",
 			GunPrice[7][0]/100*mod,GunPrice[8][0]/100*mod,GunPrice[9][0]/100*mod,GunPrice[10][0]/100*mod,GunPrice[11][0]/100*mod,GunPrice[12][0]/100*mod);
-			SendClientMessageRus(playerid, COLOR_GRAD3, gunstring2);
-			format(gunstring3, 256, "Оружие: sdpistol ($%d) colt45 ($%d) deagle ($%d) tec9 ($%d)  uzi ($%d) mp5 ($%d)",
+			SendClientMessage(playerid, COLOR_GRAD3, gunstring2);
+			format(gunstring3, 256, "Weapons: sdpistol ($%d) colt45 ($%d) deagle ($%d) tec9 ($%d)  uzi ($%d) mp5 ($%d)",
 			GunPrice[13][0]/100*mod,GunPrice[14][0]/100*mod,GunPrice[15][0]/100*mod,GunPrice[16][0]/100*mod,GunPrice[17][0]/100*mod,GunPrice[18][0]/100*mod);
-			SendClientMessageRus(playerid, COLOR_GRAD3, gunstring3);
-			format(gunstring4, 256, "Оружие: shotgun ($%d) spas12 ($%d)sawnoff ($%d) ak47 ($%d) m4 ($%d) rifle ($%d)",
+			SendClientMessage(playerid, COLOR_GRAD3, gunstring3);
+			format(gunstring4, 256, "Weapons: shotgun ($%d) spas12 ($%d)sawnoff ($%d) ak47 ($%d) m4 ($%d) rifle ($%d)",
 			GunPrice[19][0]/100*mod,GunPrice[20][0]/100*mod,GunPrice[21][0]/100*mod,GunPrice[22][0]/100*mod,GunPrice[23][0]/100*mod,GunPrice[24][0]/100*mod);
-			SendClientMessageRus(playerid, COLOR_GRAD3, gunstring4);
-			format(gunstring5, 256, "Оружие: pistolammo ($%d) shotgunammo ($%d) smgammo ($%d) assaultammo ($%d) rifleammo ($%d)",
+			SendClientMessage(playerid, COLOR_GRAD3, gunstring4);
+			format(gunstring5, 256, "Weapons: pistolammo ($%d) shotgunammo ($%d) smgammo ($%d) assaultammo ($%d) rifleammo ($%d)",
 			GunPrice[25][0],GunPrice[26][0],GunPrice[27][0],GunPrice[28][0],GunPrice[29][0]);
-			SendClientMessageRus(playerid, COLOR_GRAD3, gunstring5);
-			SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
+			SendClientMessage(playerid, COLOR_GRAD3, gunstring5);
+			SendClientMessage(playerid, COLOR_GREEN,"_______________________________________");
 			return 1;
 		}
 		strmid(gunid, tmp, 0, strlen(cmdtext), 255);
 		tmp = strtok(cmdtext, idx);
 		if(!strlen(tmp))
 		{
-			format(string, sizeof(string), "ИСПОЛЬЗОВАНИЕ: /buygun [gunname] [ammoamount]");
+			format(string, sizeof(string), "USAGE: /buygun [gunname] [ammoamount]");
 			return 1;
 		}
 		new ammo = strval(tmp);
 		/*
 		if (PlayerInfo[playerid][pLevel] >= 13 && (strcmp(gunid, "minigun", true, strlen(gunid)) == 0))
 		{
-			SendClientMessageRus(playerid, COLOR_GRAD6, "New Upgrade: You Will Now Spawn With A minigun");
+			SendClientMessage(playerid, COLOR_GRAD6, "New Upgrade: You Will Now Spawn With A minigun");
 			PlayerInfo[playerid][pGun6] = 38;
 			ResetPlayerWeapons(playerid);
 			SetPlayerWeapons(playerid);
@@ -9599,10 +9600,16 @@ public OnPlayerCommandText(playerid, cmdtext[])
 
 		if (PlayerInfo[playerid][pLevel] >= 12 && (strcmp(gunid, "flamethrower", true, strlen(gunid)) == 0))
 		{
-			SendClientMessageRus(playerid, COLOR_GRAD6, "New Upgrade: You Will Now Spawn With A flamethrower");
+			SendClientMessage(playerid, COLOR_GRAD6, "New Upgrade: You Will Now Spawn With A flamethrower");
 			PlayerInfo[playerid][pGun6] = 37;
 		}
 		*/
+		if(ammo < 0 || ammo > 999)
+		{
+			SendClientMessage(playerid, COLOR_RED, "Ты неможеш покупать больше 999 патронов за один раз!");
+			return 1;
+		}
+
 		if (strcmp(gunid, "parachute", true, strlen(gunid)) == 0)
 		{
 			gun = 46;
@@ -9755,18 +9762,18 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		}
 		else
 		{
-			SendClientMessageRus(playerid, COLOR_GRAD6, "Оружейник: никогда не слышал о такой пушке.");
+			SendClientMessage(playerid, COLOR_GRAD6, "Никогда не слышал о таком оружие!");
 			return 1;
 		}
-		if((guncharge+ammocharge) > PlayerInfo[playerid][pCash])
+		if((guncharge+ammocharge) > GetPlayerMoney(playerid))
 		{
-			format(infostring, 256, "Недостаточно денег ($%d)",guncharge+ammocharge);
-			SendClientMessageRus(playerid, COLOR_GRAD3, infostring);
+			format(infostring, 256, "Недостаточно денег $%d",guncharge+ammocharge);
+			SendClientMessage(playerid, COLOR_GRAD3, infostring);
 			return 1;
 		}
 		format(infostring, 256, "Вы купили %s с %d патронами за $%d",gunid,ammo,guncharge+ammocharge);
-		SendClientMessageRus(playerid, COLOR_GRAD3, infostring);
-		SafeGivePlayerMoney(playerid,-(guncharge+ammocharge));
+		SendClientMessage(playerid, COLOR_GRAD3, infostring);
+		GivePlayerMoney(playerid,-(guncharge+ammocharge));
 		BizzInfo[location-99][bTakings] = BizzInfo[location-99][bTakings]+(guncharge+ammocharge);
 		BizzInfo[location-99][bProd]--;
 		PlayerPlaySound(playerid, 1052, 0.0, 0.0, 0.0);
@@ -9777,7 +9784,6 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		PayLog(string);
 		return 1;
 	}
-
 	if (strcmp(cmd, "/duel", true) == 0 && PlayerInfo[playerid][pAdmin] > 1000)
 	{
 		if(GetPlayerInterior(playerid)!=0)
