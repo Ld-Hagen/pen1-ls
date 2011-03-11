@@ -358,6 +358,8 @@ new gLastCar[MAX_PLAYERS];
 new gOoc[MAX_PLAYERS];
 new BigEar[MAX_PLAYERS];
 new Spectate[MAX_PLAYERS];
+new PlayerSpec[MAX_PLAYERS]; // атв
+new PlayerSpectateID[MAX_PLAYERS];  // атв
 new FlashTime[MAX_PLAYERS];
 new CellTime[MAX_PLAYERS];
 new JailTime[MAX_PLAYERS];
@@ -16593,6 +16595,73 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		}
 		return 1;
 	}
+// atv
+    if(strcmp(cmd, "/atv", true) == 0)
+        {
+        if(PlayerInfo[playerid][pAdmin] >= 1)
+        {
+            if(IsPlayerConnected(playerid))
+            {
+                tmp = strtok(cmdtext,idx);
+                if(!strlen(tmp))
+                {
+                    SendClientMessage(playerid,COLOR_GREY," /atv [id]");
+                    return 1;
+                }
+                giveplayerid = strval(tmp);
+                if(GetPlayerState(giveplayerid) == 1)
+                {
+                    SetPlayerInterior(playerid,GetPlayerInterior(giveplayerid));
+                    SetPlayerVirtualWorld(playerid,GetPlayerVirtualWorld(giveplayerid));
+                    TogglePlayerSpectating(playerid, 1);
+                    PlayerSpectatePlayer(playerid, giveplayerid);
+                    PlayerSpectateID[playerid] = giveplayerid;
+                    PlayerSpec[giveplayerid] = playerid;
+                }
+                else if(GetPlayerState(giveplayerid) == 2)
+                {
+                    SetPlayerInterior(playerid,GetPlayerInterior(giveplayerid));
+                    SetPlayerVirtualWorld(playerid,GetPlayerVirtualWorld(giveplayerid));
+                    new idid = GetPlayerVehicleID(giveplayerid);
+                    TogglePlayerSpectating(playerid, 1);
+                    PlayerSpectateVehicle(playerid, idid);
+                    PlayerSpectateID[playerid] = giveplayerid;
+                    PlayerSpec[giveplayerid] = playerid;
+                }
+                else if(GetPlayerState(giveplayerid) == 3)
+                {
+                    SetPlayerInterior(playerid,GetPlayerInterior(giveplayerid));
+                    SetPlayerVirtualWorld(playerid,GetPlayerVirtualWorld(giveplayerid));
+                    new idid = GetPlayerVehicleID(giveplayerid);
+                    TogglePlayerSpectating(playerid, 1);
+                    PlayerSpectateVehicle(playerid, idid);
+                    PlayerSpectateID[playerid] = giveplayerid;
+                    PlayerSpec[giveplayerid] = playerid;
+                }
+                else
+                {
+                    SendClientMessage(playerid,COLOR_GREEN,"Ошибка неправельный ID");
+                }
+            }
+        }
+        return 1;
+    }
+
+// atv off
+
+    if(strcmp(cmd, "/atvoff", true) == 0)
+        {
+        if(PlayerInfo[playerid][pAdmin] >= 1)
+        {
+            TogglePlayerSpectating(playerid, 0);
+            SetCameraBehindPlayer(playerid);
+            SendClientMessage(playerid,COLOR_GREEN,"Спек выключен");
+            PlayerSpec[PlayerSpectateID[playerid]] = -1;
+            PlayerSpectateID[playerid] = -1;
+        }
+        return 1;
+    }
+
 //-----------------------------------[Slap]-----------------------------------------------
 	if(strcmp(cmd, "/slap", true) == 0)
 	{
