@@ -18215,7 +18215,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
 		if (PlayerInfo[playerid][pAdmin] >= 1)
 		{
-			SendClientMessageRus(playerid, COLOR_GRAD1, "*1* MODERATOR *** /stats /setint /mute /kick /ban /goto /cnn /a(dmin) chat");
+			SendClientMessageRus(playerid, COLOR_GRAD1, "*1* MODERATOR *** /stats /setint /mute /kick /ban /goto /cnn /a(dmin) chat /atv /atvoff");
 		}
 		if (PlayerInfo[playerid][pAdmin] >= 2)
 		{
