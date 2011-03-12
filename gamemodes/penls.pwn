@@ -14497,12 +14497,6 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						format(string, sizeof(string), "Вы были вылечены до 150 здоровья за $%d",mediccharge);
 						SendClientMessageRus(giveplayerid, TEAM_GREEN_COLOR,string);
 						PlayerInfo[playerid][pWA]++;
-						if(PlayerInfo[playerid][pWA] >= 20)
-						{
-							PlayerInfo[playerid][pExp]++;
-							PlayerInfo[playerid][pWA] = 0;
-							SendClientMessageRus(playerid, COLOR_YELLOW, "Вы получаете бонус: +1 опыт");
-						}
 					}
 
 				}
