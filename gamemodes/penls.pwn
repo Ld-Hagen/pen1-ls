@@ -14496,7 +14496,6 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					{
 						format(string, sizeof(string), "Вы были вылечены до 150 здоровья за $%d",mediccharge);
 						SendClientMessageRus(giveplayerid, TEAM_GREEN_COLOR,string);
-						PlayerInfo[playerid][pWA]++;
 					}
 
 				}
