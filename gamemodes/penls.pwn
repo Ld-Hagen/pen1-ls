@@ -8819,7 +8819,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		}
 		if(!strlen(tmp))
 		{
-			SendClientMessageRus(playerid, COLOR_GRAD1, "ИСПОЛЬЗОВАНИЕ: /changename [newname]");
+			SendClientMessageRus(playerid, COLOR_GRAD1, "ИСПОЛЬЗОВАНИЕ: /changenick [newname]");
 			return 1;
 		}
 		format(string, sizeof(string), "%s.cer", tmp);
@@ -15687,6 +15687,64 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		}
 		return 1;
 	}
+// Смена ника
+    if(strcmp(cmd, "/setname", true) == 0)
+    {
+        if(PlayerInfo[playerid][pAdmin] >= 3)
+        {
+            new nicktmp[19];
+            new string2[256];
+            new string3[256];
+            tmp = strtok(cmdtext, idx);
+            if(!strlen(tmp))
+            {
+                SendClientMessage(playerid, COLOR_GRAD2, "Использовать: /setname [Ид игрока][Новый ник]");
+                return 1;
+            }
+            giveplayerid = strval(tmp);
+            format(nicktmp, sizeof(nicktmp), "%s", strtok(cmdtext, idx));
+            if(!strlen(nicktmp))
+            {
+                SendClientMessage(playerid, COLOR_GRAD1, "Использовать: /setname [Ид игрока][Новый ник]");
+                return 1;
+            }
+            else
+            {
+                if(strlen(nicktmp) < 3)
+                {
+                    SendClientMessage(playerid, COLOR_GRAD1, "Cлишком короткий ник!");
+                    return 1;
+                }
+                else if(strlen(nicktmp) > 19)
+                {
+                    SendClientMessage(playerid, COLOR_GRAD1, "Cлишком длиный ник!");
+                    return 1;
+                }
+                format(string, sizeof(string), "%s.ini", nicktmp);
+                if(fexist(string))
+                {
+                    SendClientMessage(playerid, COLOR_GRAD1, "Этот ник уже занят");
+                    return 1;
+                }
+                else
+                {
+                    if(IsPlayerConnected(giveplayerid))
+                    {
+                        format(string, sizeof(string), "Теперь твой ник: %s", nicktmp);
+                        SendClientMessage(giveplayerid, 0xF6F6F6AA, string);
+                        GetPlayerName(giveplayerid, playername, sizeof(playername));
+                        format(string3, sizeof(string3), "%s теперь известен как %s", playername, nicktmp);
+                        SendClientMessageToAll(0xF6F6F6AA, string3);
+                        format(string2, sizeof(string2), "%s.ini", playername);
+                        fremove(string2);
+                        SetPlayerName(giveplayerid, nicktmp);
+                        return 1;
+                    }
+                }
+            }
+        }
+        return 1;
+    }
 //----------------------------------[SKYDIVE]------------------------------------------------
 	if(strcmp(cmd, "/skydive", true) == 0)
 	{
