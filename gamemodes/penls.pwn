@@ -7646,7 +7646,7 @@ public LoadPlayer(loaderid,const string[])
 	new string2[64];
 	new loaded = loaderid;
 	new valtmp[128];
-	format(string2, sizeof(string2), "%s.cer", string);
+	format(string2, sizeof(string2), "%s.cer", strlower(string));
 	new File: file = fopen(string2, io_read);
 	if (file)
 	{
@@ -7701,7 +7701,7 @@ public SavePlayer(loaderid,const string[])
 {
 	new string3[32];
 	new saved = loaderid;
-	format(string3, sizeof(string3), "%s.cer", string);
+	format(string3, sizeof(string3), "%s.cer", strlower(string));
 	new File: pFile = fopen(string3, io_write);
 	if (pFile)
 	{
@@ -7765,7 +7765,7 @@ public OnPlayerLogin(playerid,const string[])
 	}
 	*/
 	GetPlayerName(playerid, playername2, sizeof(playername2));
-	format(string2, sizeof(string2), "%s.cer", playername2);
+	format(string2, sizeof(string2), "%s.cer", strlower(playername2));
 	new File: file = fopen(string2, io_read);
 	if (file)
 	{
@@ -7927,7 +7927,7 @@ public PlayerUpdate(playerid)
 		new string3[32];
 		new playername3[MAX_PLAYER_NAME];
 		GetPlayerName(playerid, playername3, sizeof(playername3));
-		format(string3, sizeof(string3), "%s.cer", playername3);
+		format(string3, sizeof(string3), "%s.cer", strlower(playername3));
 		new File: pFile = fopen(string3, io_write);
 		if (gdebug){printf("DEBUG PlayerUpdate(%d)8.5", playerid);}
 		if (pFile)
@@ -8005,14 +8005,14 @@ public OnPlayerRename(name[],string[],playerid)
 	if (gdebug >= 1){printf("DEBUG OnPlayerRename(%d)", playerid);}
 	if (gPlayerLogged[playerid] != 0)
 	{
-		new File: pFile = fopen(string, io_write);
+		new File: pFile = fopen(strlower(string), io_write);
 		if (gdebug){printf("DEBUG PlayerUpdate(%d)8.5", playerid);}
 		if (pFile)
 		{
 			new var[32];
 			format(var, 32, "%s\n", PlayerInfo[playerid][pPassword]);fwrite(pFile, var);
 			fclose(pFile);
-			new File: hFile = fopen(string, io_append);
+			new File: hFile = fopen(strlower(string), io_append);
 //			PlayerInfo[playerid][pCash] = GetPlayerMoney(playerid);
 			format(var, 32, "%d pCash\n",PlayerInfo[playerid][pCash]);fwrite(hFile, var);
 			format(var, 32, "%d pAccount\n",PlayerInfo[playerid][pAccount]);fwrite(hFile, var);
@@ -8832,7 +8832,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			GameTextForPlayerRus(playerid, "~w~Now Select a character and type /login <your password>", 10000, 3);*/
 		strmid(PlayerInfo[playerid][pPassword], tmp, 0, strlen(cmdtext), 255);
 		GetPlayerName(playerid, playername, sizeof(playername));
-		format(string, sizeof(string), "%s.cer", playername);
+		format(string, sizeof(string), "%s.cer", strlower(playername));
 		PlayerInfo[playerid][pCash] = GetPlayerMoney(playerid);
 		new File: file = fopen(string, io_read);
 		if (file)

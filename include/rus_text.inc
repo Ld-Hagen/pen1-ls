@@ -90,3 +90,21 @@ public FixRus(string[])
 	}
 	return 1;
 }
+
+stock strlower(txt[])
+{
+    new tmp[MAX_TEXTSTR];
+    tmp[0]=0;
+    if (txt[0]==0) return tmp;
+    new i=0;
+    for (i=0;i<strlen(txt);i++) {
+        if(txt[i] >= 'A' && txt[i] <= 'Z' || txt[i] >= 'À' && txt[i] <= 'ß')
+			tmp[i] = txt[i] + 32;
+		else if(txt[i] == '¨')
+			tmp[i] = '¸';
+		else
+			tmp[i] = txt[i];
+    }
+    tmp[strlen(txt)]=0;
+    return tmp;
+}
