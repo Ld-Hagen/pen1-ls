@@ -8555,6 +8555,133 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		}
 	    return 1;
 	}
+	
+	if(strcmp(cmd,"/unbanip",true)==0)
+	{
+		if(PlayerInfo[playerid][pAdmin] >= 3)
+		{
+		    tmp = strtok(cmdtext,idx);
+		    if(!strlen(tmp))
+		    {
+		        SendClientMessageRus(playerid,COLOR_GRAD1,"ÈÑÏÎËÜÇÎÂÀÍÈÅ: /unbanip [ip èãðîêà]");
+		        return 1;
+   			}
+
+			new ipidx = 0;
+			new ip[8];
+			new tmp2[64];
+
+			tmp2 = strtok(tmp,ipidx, ".");
+			if(strlen(tmp2) == 0)
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ÏÎÄÑÊÀÇÊÀ: íåïðàâèëüíî ââåäåí IP àäðåñ.");
+		        return 1;
+			}
+			if(strcmp(tmp2, "*", true) == 0)
+			{
+			    ip[4] = 255;
+			    ip[0] = 0;
+			}
+			else if((ip[0] = strval(tmp2)) >= 0 && (ip[0] = strval(tmp2)) <= 255)
+			{
+			    ip[4] = ip[0];
+			}
+			else
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ÏÎÄÑÊÀÇÊÀ: íåïðàâèëüíî ââåäåí IP àäðåñ.");
+		        return 1;
+			}
+
+			tmp2 = strtok(tmp,ipidx, ".");
+			if(strlen(tmp2) == 0)
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ÏÎÄÑÊÀÇÊÀ: íåïðàâèëüíî ââåäåí IP àäðåñ.");
+		        return 1;
+			}
+			if(strcmp(tmp2, "*", true) == 0)
+			{
+			    ip[5] = 255;
+			    ip[1] = 0;
+			}
+			else if((ip[1] = strval(tmp2)) >= 0 && (ip[1] = strval(tmp2)) <= 255)
+			{
+			    ip[5] = ip[1];
+			}
+			else
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ÏÎÄÑÊÀÇÊÀ: íåïðàâèëüíî ââåäåí IP àäðåñ.");
+		        return 1;
+			}
+			tmp2 = strtok(tmp,ipidx, ".");
+			if(strlen(tmp2) == 0)
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ÏÎÄÑÊÀÇÊÀ: íåïðàâèëüíî ââåäåí IP àäðåñ.");
+		        return 1;
+			}
+			if(strcmp(tmp2, "*", true) == 0)
+			{
+			    ip[6] = 255;
+			    ip[2] = 0;
+			}
+			else if((ip[2] = strval(tmp2)) >= 0 && (ip[2] = strval(tmp2)) <= 255)
+			{
+			    ip[6] = ip[2];
+			}
+			else
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ÏÎÄÑÊÀÇÊÀ: íåïðàâèëüíî ââåäåí IP àäðåñ.");
+		        return 1;
+			}
+			tmp2 = strtok(tmp,ipidx, ".");
+			if(strlen(tmp2) == 0)
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ÏÎÄÑÊÀÇÊÀ: íåïðàâèëüíî ââåäåí IP àäðåñ.");
+		        return 1;
+			}
+			if(strcmp(tmp2, "*", true) == 0)
+			{
+			    ip[7] = 255;
+			    ip[3] = 0;
+			}
+			else if((ip[3] = strval(tmp2)) >= 0 && (ip[3] = strval(tmp2)) <= 255)
+			{
+			    ip[7] = ip[3];
+			}
+			else
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ÏÎÄÑÊÀÇÊÀ: íåïðàâèëüíî ââåäåí IP àäðåñ.");
+		        return 1;
+			}
+		    new s1[5];
+		    new s2[10];
+		    new s3[15];
+		    new s4[30];
+		    for(new i = ip[0]; i<=ip[4]; i++)
+		    {
+				format(s1, sizeof(s1), "%d.", i);
+				for(new j = ip[1]; j<=ip[5]; j++)
+                {
+                    format(s2, sizeof(s2), "%s%d.", s1, j);
+					for(new k = ip[2]; k<=ip[6]; k++)
+                    {
+                        format(s3, sizeof(s3), "%s%d.", s2, k);
+						for(new l = ip[3]; l<=ip[7]; l++)
+                        {
+            	            format(s4,sizeof(s4),"unbanip %s%d", s3, l);
+            	            print(s4);
+                            SendRconCommand(s4);
+                        }
+			        }
+			    }
+			}
+   			SendRconCommand("reloadbans");
+   			GetPlayerName(giveplayerid, giveplayer, sizeof(giveplayer));
+			GetPlayerName(playerid, sendername, sizeof(sendername));
+			format(string, 256, "AdmWarning: %s ðàçáàíèë IP %s", sendername,tmp);
+			ABroadCast(COLOR_YELLOW,string,1, CHAT_ADM_WARN);
+		}
+		return 1;
+	}
 
 //-------------------------------[Pay]--------------------------------------------------------------------------
 	if(strcmp(cmd, "/pay", true) == 0)
