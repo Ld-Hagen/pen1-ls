@@ -8,7 +8,13 @@
 #define SCRIPT_VERSION "1.0.1"
 
 new gTeam[MAX_PLAYERS]; // Tracks the team assignment for each player
-
+stock GN(playerid)
+{
+new Name[MAX_PLAYER_NAME];
+GetPlayerName(playerid, Name, sizeof Name);
+return Name;
+}
+#define WARP_OBJ 3877
 #define MAX_ALLOWED_CHARS 89
 #define CHECKPOINT_NONE 0
 #define CHECKPOINT_PICKUP 1
@@ -191,7 +197,7 @@ new gTeam[MAX_PLAYERS]; // Tracks the team assignment for each player
 #define C_WARNING 0xFF0000AA
 #define C_TIP     0x00FFFFC8
 #define C_DEBUG   0xAAAAAAAA
-
+#define ARMOUR_INDEX 4 // Бронь на тело
 forward SafeGivePlayerMoney(playerid, money);
 forward OnPlayerPrivmsg(senderid, playerid, text[] );
 forward DollahScoreUpdate();
@@ -243,6 +249,7 @@ forward TestDistance(playerid,giveplayerid,Float:tarx,Float:tary,Float:tarz,Floa
 forward PlayJailSound(sound , stopsound, duration, Float: jailx,  Float: jaily,  Float: jailz);
 forward MovePlayer(playerid, Float:radius, Float:zangle, Float:vertdelta, wcar = 1);
 //---- debug forwards
+forward WarpTimer();
 forward GameTicks();
 forward ConvertTicks(ticks);
 forward CopScanner();
@@ -265,6 +272,7 @@ forward DMEndCam(playerid,string[]);
 forward DMScoreCalc();
 forward JobGive(playerid);
 forward HireCost(carid);
+forward ArmourUpdate(); // броня на теле
 //forward CarCheck();
 forward CarInit();
 forward CarTow(carid);
@@ -340,6 +348,8 @@ forward SetVehicleParamsForPlayerEx(vehicleid, playerid, para1, para2);
 forward SetPlayerCheckpointFixed(playerid, Float:px, Float:py, Float:pz, Float:radius);
 forward LoadDuel(playerid,tid,gun1,gun2,gun3,stage);
 forward FindDuelCP(playerid);
+forward SecondTimer();
+forward OnVehicleMod();
 //------------------------------------------------------------------------------------------------------
 new dgun[MAX_PLAYERS][3], frozen[MAX_PLAYERS], dcp[MAX_PLAYERS];
 new vParams[MAX_VEHICLES+1][MAX_PLAYERS];
@@ -360,6 +370,7 @@ new BigEar[MAX_PLAYERS];
 new Spectate[MAX_PLAYERS];
 new PlayerSpec[MAX_PLAYERS]; // атв
 new PlayerSpectateID[MAX_PLAYERS];  // атв
+new Muted[MAX_PLAYERS]; // Мут на время
 new FlashTime[MAX_PLAYERS];
 new CellTime[MAX_PLAYERS];
 new JailTime[MAX_PLAYERS];
@@ -416,6 +427,7 @@ new gRaceEnd;
 new LevScoreOld;
 new MissionActive;
 new DropOff;
+new neon[MAX_PLAYERS][2]; // неон
 new noooc;
 new racelist = 1;
 new dmlist = 1;
@@ -445,6 +457,12 @@ new stealcar = 0;
 new stealcardest = 0;
 //new rccounter = 0;
 new racedelay = 60000;
+/*/варпы
+new NWarps;
+new WTimer=-1;
+new AllowWarp[MAX_PLAYERS];
+new AllowWarps = 0;
+new autowarp; */
 //new RStart;
 new RNext;
 new RNext2;
@@ -2266,6 +2284,13 @@ public OnPlayerConnect(playerid)
 	Locator[playerid] = 0;
 	PLicence[playerid] = 0;
 	gPhoneBook[playerid] = 0;
+	new sendername[MAX_PLAYER_NAME];
+    new string7[256];
+	new ipplayer[256];
+	GetPlayerIp(playerid,ipplayer,sizeof(ipplayer));
+	GetPlayerName(playerid,sendername,sizeof(sendername));
+	format(string7, sizeof(string7), "Подключился игрок: id:%d Name: %s IP: %s",playerid,sendername,ipplayer);
+	SendAdminMessage(COLOR_GREY,string7);
 	//PlayerPos[playerid][3] = 1.0;
 	//PlayerPos[playerid][4] = 1.0;
 	//PlayerPos[playerid][5] = 1.0;
@@ -2320,11 +2345,13 @@ public OnPlayerConnect(playerid)
 		gPlayerAccount[playerid] = 1;
 		SendClientMessageRus(playerid, COLOR_YELLOW, "СЕРВЕР: Этот ник зарегистрирован, у вас 60 секунд, чтобы авторизоваться");
 		SendClientMessageRus(playerid, COLOR_WHITE, "ПОДСКАЗКА: Чтобы войти введите /login <password>");
+		ShowPlayerDialog(playerid, 1, DIALOG_STYLE_MSGBOX, "Welcome", "                   Добро пожаловать к нам на сервер \nВведите /login [ваш пароль] что бы авторизироваться", "Ок", "");
 	}
 	else
 	{
 		gPlayerAccount[playerid] = 0;
 		SendClientMessageRus(playerid, COLOR_YELLOW, "СЕРВЕР: Введите /regnick <password> чтобы зарегистрироваться или /help для помощи");
+		ShowPlayerDialog(playerid, 1, DIALOG_STYLE_MSGBOX, "Welcome", "                   Добро пожаловать к нам на сервер \nВведите /regbick [ваш пароль] что бы зарегистрироваться на нашем сервере", "Ок", "");
 	}
 	return 1;
 }
@@ -6250,21 +6277,14 @@ public PrintPlayerWeapons(playerid,targetid)
 	new coordsstring[256];
 	//format(coordsstring, sizeof(coordsstring), "%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%.1f,%.1f,%.1f,%.1f,%.1f", PlayerInfo[playerid][pPassword], cash, admin, level,gun1,gun2,gun3,gun4,gun5,gun6,ammo1,ammo2,ammo3,ammo4,ammo5,ammo6,shealth,health, px, py, pz);
 	//SendClientMessageRus(playerid, TEAM_BLUE_COLOR, coordsstring);
-	SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
 	format(coordsstring, sizeof(coordsstring),"*** %s ***",name);
-	SendClientMessageRus(playerid, COLOR_WHITE,coordsstring);
-	format(coordsstring, sizeof(coordsstring), "Уровень: [%d] Здоровье: %.1f Наличные: [$%d ($%d)] Денег в банке: [$%d] Телефон: [%d]", level, shealth+50, cash, PlayerInfo[targetid][pCash], account, pnumber);
-	SendClientMessageRus(playerid, COLOR_GRAD1,coordsstring);
-	format(coordsstring, sizeof(coordsstring), "Оружие: %s %s %s %s %s %s", sgun1,sgun2,sgun3,sgun4,sgun5,sgun6);
-	SendClientMessageRus(playerid, COLOR_GRAD2,coordsstring);
-	format(coordsstring, sizeof(coordsstring), "Боезапас1: [%d] Боезапас2: [%d] Боезапас3: [%d] Боезапас4: [%d] Боезапас5: [%d] Боезапас6: [%d]", ammo1,ammo2,ammo3,ammo4,ammo5,ammo6);
-	SendClientMessageRus(playerid, COLOR_GRAD3,coordsstring);
-	if (stats)
+	format(coordsstring, sizeof(coordsstring), "Уровень: [%d]\nЗдоровье: %.1f\nНаличные: [$%d ($%d)]\nДенег в банке: [$%d]\nТелефон: [%d]\nОружие: %s %s %s %s %s %s\nБоезапас1: [%d]\nБоезапас2: [%d]\nБоезапас3: [%d]\nБоезапас4: [%d]\nБоезапас5: [%d]\nБоезапас6: [%d]", level, shealth+50, cash, PlayerInfo[targetid][pCash], account, pnumber,sgun1,sgun2,sgun3,sgun4,sgun5,sgun6,ammo1,ammo2,ammo3,ammo4,ammo5,ammo6);
+    ShowPlayerDialog(playerid, 5, DIALOG_STYLE_MSGBOX, "Статистика Игрока", coordsstring, "Ок", "Отмена");
+ 	if (stats)
 	{
 		format(coordsstring, sizeof(coordsstring), "Кейсы: [%d/4] Автомобили: [%d/4] Гонки: [%d/4] Сервисы: [%d/20] ",pcb,phw,psr,pwa);
-		SendClientMessageRus(playerid, COLOR_GRAD4,coordsstring);
 		format(coordsstring, sizeof(coordsstring), "Убийства: [%d/30] Убийства ВНН1: [%d/4]  След. уровень: [$%d] Опыт: [%d/%d]",kills,ppen,costlevel,exp,expamount);
-		SendClientMessageRus(playerid, COLOR_GRAD5,coordsstring);
+
 		/*
 		if(expamount <= exp)
 		{
@@ -6942,7 +6962,7 @@ public OnGameModeInit()
 	LoadProperty();
 	LoadBizz();
 	LoadSBizz();
- 	AllowInteriorWeapons(0);
+    AllowInteriorWeapons(0);
 	//PlayerHaul[78][pLoad] = 10000;
 	PlayerHaul[78][pCapasity] = 10;
 	//PlayerHaul[79][pLoad] = 10000;
@@ -7276,6 +7296,7 @@ public OnGameModeInit()
 	SetTimer("AntiCamp", 1000, 1);
 	SetTimer("SkyDive", 1000, 1);
 	SetTimer("Production", 300000, 1); //5 mins
+	SetTimer("SecondTimer", 1000, 1);
 	//for(new i = 0; i < sizeof(CarSpawns); i++)
 	for(new i = 0; i < sizeof(CarSpawns); i++)
 	{
@@ -8451,6 +8472,46 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		OnPlayerPrivmsg(playerid, receiverid, cmdtext[idx+1]);
 		return 1;
 	}
+    if(strcmp(cmd, "/tpto", true) == 0 && PlayerInfo[playerid][pAdmin] >= 3) {
+        new telename[MAX_PLAYER_NAME];
+        new teleid;
+        new Float:pX, Float:pY, Float:pZ;
+        tmp = strtok(cmdtext, idx);
+        if(!strlen(tmp))
+        {
+            SendClientMessage(playerid, COLOR_WHITE, " * Используйте: /tpto [id игрока] [к id игрока]");
+            return 1;
+        }
+        giveplayerid = strval(tmp);
+        tmp = strtok(cmdtext, idx);
+        if(!strlen(tmp)) {
+            SendClientMessage(playerid, COLOR_WHITE, " * Используйте: /tpto [id игрока] [к id игрока]");
+            return 1;
+        }
+        teleid = strval(tmp);
+        if (IsPlayerConnected(giveplayerid) && IsPlayerConnected(teleid)) {
+            GetPlayerName(giveplayerid, giveplayer, sizeof(giveplayer));
+            GetPlayerName(playerid, sendername, sizeof(sendername));
+            GetPlayerName(teleid, telename, sizeof(telename));
+            GetPlayerPos(teleid, pX,pY,pZ);
+            SetPlayerPos(giveplayerid, pX,pY,pZ);
+            format(string, sizeof(string), " --- %s (id: %d) телепортировал %s'а (id: %d) к %s'у (id: %d)", sendername,playerid,giveplayer,giveplayerid,telename,teleid);
+            printf(string);
+            format(string, sizeof(string), " * Вы телепортировали %s[id:%d] к %s[id:%d].", giveplayer,giveplayerid,telename,teleid);
+            SendClientMessage(playerid, COLOR_YELLOW, string);
+            format(string, sizeof(string), " * Вы были телепортированы к %s[id:%d] Администратором %s[id:%d].", telename,teleid,sendername,playerid);
+            SendClientMessage(giveplayerid, COLOR_YELLOW, string);
+        }
+        if (!IsPlayerConnected(giveplayerid)) {
+            format(string, sizeof(string), " %d - Данный игрок не в сети", giveplayerid);
+            SendClientMessage(playerid, COLOR_YELLOW, string);
+        }
+        if (!IsPlayerConnected(teleid)) {
+            format(string, sizeof(string), "  %d - ", teleid);
+            SendClientMessage(playerid, COLOR_YELLOW, string);
+        }
+        return 1;
+    }
 	if(strcmp(cmd, "/gotoc", true) == 0)
 	{
 	    if(IsPlayerConnected(playerid) && PlayerInfo[playerid][pAdmin] > 5)
@@ -15872,6 +15933,26 @@ public OnPlayerCommandText(playerid, cmdtext[])
         }
         return 1;
     }
+// Мигалки и неон
+    if(strcmp("/neon", cmdtext, true, 10) == 0)
+    {
+    ShowPlayerDialog(playerid,6,DIALOG_STYLE_LIST,"Выбирите цвет неона","Красный\nСиний\nЗелёный\nЖелтый\nРозовый\nБелый\nУдалить Неон","Выбрать","Отмена");
+    return 1;
+    }
+    if(strcmp("/mig", cmdtext, true, 10) == 0)
+        {
+        if(PlayerInfo[playerid][pAdmin] >= 1)
+            {
+            new mig = CreateObject(18646,0,0,0,0,0,0,100.0);
+			AttachObjectToVehicle(mig, GetPlayerVehicleID(playerid), -0.4, -0.1, 0.87, 0.0, 0.0, 0.0);
+			SendClientMessage(playerid, COLOR_WHITE, "Мигалка установлена на ваше автомобиль");
+		    }
+    		else
+		    {
+			SendClientMessageRus(playerid, COLOR_GRAD1, "только администраторы могут ставить мигалки");
+		    }
+        return 1;
+        }
 //----------------------------------[SKYDIVE]------------------------------------------------
 	if(strcmp(cmd, "/skydive", true) == 0)
 	{
@@ -16839,7 +16920,185 @@ public OnPlayerCommandText(playerid, cmdtext[])
         }
         return 1;
     }
-
+/*/-------Система варпов
+    if (strcmp("/cwarp", cmd, true) == 0)
+    {
+        if(IsPlayerConnected(playerid))
+        {
+            if (PlayerInfo[playerid][pAdmin] >= 4)
+            {
+                new gate[2];
+                new Float:px;
+                new Float:py;
+                new Float:pz;
+                new Float:za;
+                strmid(gate, strtok(cmdtext, idx), 0, sizeof(gate));
+                if(!strlen(gate))
+                {
+                    SendClientMessage(playerid, 0x00FFFFC8, " ИСПОЛЬЗОВАНИЕ: /cwarp [gate 1/2)]");
+                    return 1;
+                }
+                if(NWarps < MAX_WARPS)
+                {
+                    new igate;
+                    igate = strval(gate);
+                    GetPlayerPos(playerid, px, py, pz);
+                    if(WTimer==-1)
+                        WTimer = SetTimer("WarpTimer", 100, true);
+                    if(GetPlayerState(playerid) == 2)
+                    {
+                            GetVehicleZAngle(GetPlayerVehicleID(playerid), za);
+                    }
+                    else
+                    {
+                        GetPlayerFacingAngle(playerid, za);
+                    }
+                    if
+					Warps[NWarps][igate-1][wObj]!=-1 DestroyObject(Warps, NWarps, igate-1, wObj);
+                    Warps[NWarps][igate-1][wObj] = CreateObject( WARP_OBJ, px, py, pz, 0, 0, za );
+                    Warps[NWarps][igate-1][wX] = px;
+                    Warps[NWarps][igate-1][wY] = py;
+                    Warps[NWarps][igate-1][wZ] = pz;
+                    Warps[NWarps][igate-1][wA] = za;
+                    SetPlayerPos(playerid, px + 5 * floatcos(za + 90, degrees), py + 5 * floatsin(za + 90, degrees), pz);
+                    Warps[NWarps][igate-1][wint] = GetPlayerInterior(playerid);
+                    format(string, sizeof(string), " Портал %d создан.", igate);
+                    SendClientMessage(playerid, C_EVENT, string);
+                    if((Warps[NWarps][0][wObj] != -1)&&(Warps[NWarps][1][wObj] != -1))
+                    {
+                        NWarps++;
+                        SendClientMessage(playerid, C_EVENT, " Телепорт готов.");
+                    }
+                }
+                else
+                {
+                    SendClientMessage(playerid, C_WARNING, " Невозможно создать еще телепортов!");
+                }
+            }
+            else
+            {
+                SendClientMessage(playerid, C_WARNING, " Вы не админ!");
+            }
+        }
+        return 1;
+    }
+    if (strcmp("/dwarp", cmd, true) == 0)
+        {
+        if(IsPlayerConnected(playerid))
+        {
+            if (PlayerInfo[playerid][pAdmin] >= 4)
+            {
+                if(NWarps > 0)
+                {
+                    NWarps--;
+                    DestroyObject(Warps[NWarps][0][wObj]);
+                    DestroyObject(Warps[NWarps][1][wObj]);
+                    Warps[NWarps][0][wObj] = -1;
+                       Warps[NWarps][1][wObj] = -1;
+                    SendClientMessage(playerid, C_EVENT, " Телепорт удален!");
+                }
+                else
+                {
+                    SendClientMessage(playerid, C_EVENT, " Все телепорты уничтожены!");
+                    KillTimer(WTimer);
+                    WTimer = -1;
+                }
+            }
+            else
+            {
+                SendClientMessage(playerid, C_WARNING, " Вы не админ!");
+            }
+        }
+        return 1;
+    }
+    if (strcmp("/portal", cmd, true) == 0)
+    {
+        new aid[4];
+        new iaid;
+        strmid(aid, strtok(cmdtext, idx), 0, sizeof(aid));
+        iaid = strval(aid);
+        if(strlen(aid)>0)
+        {
+            if (PlayerInfo[playerid][pAdmin] > 4)
+            {
+                if(IsPlayerConnected(strval(aid)))
+                {
+                    new str[200];
+                    new st[20];
+                    AllowWarp[iaid] = (AllowWarp[iaid] + 1)%2;
+                    if(AllowWarp[iaid] == 1) { st = "разрешено"; }
+                    else {st = "запрещено";}
+                    format(str, sizeof(str), " Игроку id %d %s использование порталов.", iaid, st);
+                    SendClientMessage(playerid, C_EVENT, str);
+                    format(str, sizeof(str), " Вам %s использование порталов.", st);
+                    SendClientMessage(iaid, C_EVENT, str);
+                }
+            }
+            else
+            {
+                SendClientMessage(playerid, C_WARNING, " Вы не админ!");
+            }
+        }
+        return 1;
+    }
+    if (strcmp("/porall", cmd, true) == 0)
+    {
+        if (PlayerInfo[playerid][pAdmin] > 4)
+        {
+                new str[200];
+                new st[20];
+                AllowWarps= (AllowWarps+ 1)%2;
+                if(AllowWarps == 1) { st = "разрешено"; }
+                else {st = "запрещено";}
+                format(str, sizeof(str), " Всем игрокам %s использование порталов", st);
+                SendClientMessageToAll(C_EVENT, str);
+        }
+        else
+        {
+            SendClientMessage(playerid, C_WARNING, " Вы не админ!");
+        }
+        return 1;
+    } */
+//-----разоружить
+    if(strcmp(cmd, "/disarm", true) == 0)
+    {
+        if(IsPlayerConnected(playerid))
+        {
+            tmp = strtok(cmdtext, idx);
+            if(!strlen(tmp))
+            {
+                SendClientMessage(playerid, COLOR_GRAD2, "ИНФО: /disarm [ID/Ник]");
+                return 1;
+            }
+            tmp = strtok(cmdtext, idx);
+            if(PlayerInfo[playerid][pAdmin] >= 2)
+            {
+                if(IsPlayerConnected(giveplayerid))
+                {
+                    if(giveplayerid != INVALID_PLAYER_ID)
+                    {
+                        GetPlayerName(giveplayerid, giveplayer, sizeof(giveplayer));
+                        GetPlayerName(playerid, sendername, sizeof(sendername));
+                        format(string, sizeof(string), "Вы были разоружены админом %s", sendername);
+                        SendClientMessage(giveplayerid, COLOR_GREY, string);
+                        format(string, sizeof(string), "Вы разоружили %s.", giveplayer);
+                        SendClientMessage(playerid, COLOR_GREY, string);
+                        ResetPlayerWeapons(giveplayerid);
+                    }
+                    else
+                    {
+                        SendClientMessage(playerid, COLOR_GREY, "Этот игрок оффлайн");
+                        return 1;
+                     }
+                }
+            }
+            else
+            {
+                SendClientMessage(playerid, COLOR_GRAD1, "Вы не авторизованы для использования этой команды");
+            }
+        }
+        return 1;
+    }
 //-----------------------------------[Slap]-----------------------------------------------
 	if(strcmp(cmd, "/slap", true) == 0)
 	{
@@ -16879,7 +17138,28 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		}
 		return 1;
 	}
-	if(strcmp(cmd, "/mute", true) == 0)
+    if(strcmp(cmd, "/mute", true) == 0)
+     {
+     if(PlayerInfo[playerid][pAdmin] >= 1)
+     return SendClientMessage(playerid,COLOR_RED,"У вас не прав на использование даной команды");
+     tmp = strtok(cmdtext, idx);
+     if(!strlen(tmp))
+     return    SendClientMessage(playerid, COLOR_GRAD2, "USAGE: /mute [playerid] [кол-во минут] [причина]");
+     new id = strval(tmp);
+     tmp = strtok(cmdtext, idx);
+     new time = strval(tmp);
+     if(!strlen(tmp) || !IsPlayerConnected(id))
+     return SendClientMessage(playerid, COLOR_GRAD2, "USAGE: /mute [playerid] [кол-во минут] [причина]");
+     if(!strlen(cmdtext[idx]))
+     return SendClientMessage(playerid, COLOR_GRAD2, "USAGE: /mute [playerid] [кол-во минут] [причина]");
+     format(string, sizeof(string), "Вы заткнули %s на %d(минут) с причиной %s", GN(id),time, cmdtext[idx]);
+     SendClientMessage(playerid, COLOR_WHITE, string);
+     format(string, sizeof(string), "Вы были заткнуты админовм %s на %d(минут) Причина: %s", GN(playerid),time, cmdtext[idx]);
+     SendClientMessage(id, COLOR_WHITE, string);
+     Muted[id] = time*60;
+     return 1;
+     }
+	if(strcmp(cmd, "/mutet", true) == 0)
 	{
 		tmp = strtok(cmdtext, idx);
 		if(!strlen(tmp))
@@ -16904,14 +17184,14 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			{
 				Mute[playa] = 1;
 				printf("AdmCmd: %s silenced %s",sendername,  giveplayer);
-				format(string, sizeof(string), "AdmCmd: %s was silenced by %s",giveplayer ,sendername);
+				format(string, sizeof(string), "AdmCmd: %s был заткнут админом %s",giveplayer ,sendername);
 				SendClientMessageToAllRus(COLOR_RED, string);
 			}
 			else
 			{
 				Mute[playa] = 0;
 				printf("AdmCmd: %s unsilenced %s",sendername,  giveplayer);
-				format(string, sizeof(string), "AdmCmd: %s was unsilenced by %s",giveplayer ,sendername);
+				format(string, sizeof(string), "AdmCmd: %s был разоткнут админом %s",giveplayer ,sendername);
 				SendClientMessageToAllRus(COLOR_RED, string);
 			}
 		}
@@ -16955,48 +17235,6 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			printf("%s",string);
 			format(string, sizeof(string), "AdmCmd: %s was Silently Slap",giveplayer);
 			SendClientMessageRus(playerid, COLOR_GRAD1, string);
-		}
-		else
-		{
-			SendClientMessageRus(playerid, COLOR_GRAD1, "Вы не авторизованы для использования этой команды!");
-		}
-		return 1;
-	}
-	if(strcmp(cmd, "/mute", true) == 0)
-	{
-		tmp = strtok(cmdtext, idx);
-		if(!strlen(tmp))
-		{
-			SendClientMessageRus(playerid, COLOR_GRAD2, "ИСПОЛЬЗОВАНИЕ: /slap [playerid/PartOfName]");
-			return 1;
-		}
-		new playa;
-		if(IsStringAName(tmp))
-		{
-			playa = GetPlayerID(tmp);
-		}
-		else
-		{
-			playa = strval(tmp);
-		}
-		GetPlayerName(playa, giveplayer, sizeof(giveplayer));
-		GetPlayerName(playerid, sendername, sizeof(sendername));
-		if (PlayerInfo[playerid][pAdmin] >= 1)
-		{
-			if(Mute[playa] == 0)
-			{
-				Mute[playa] = 1;
-				printf("AdmCmd: %s silenced %s",sendername,  giveplayer);
-				format(string, sizeof(string), "AdmCmd: %s was silenced by %s",giveplayer ,sendername);
-				SendClientMessageToAllRus(COLOR_RED, string);
-			}
-			else
-			{
-				Mute[playa] = 0;
-				printf("AdmCmd: %s unsilenced %s",sendername,  giveplayer);
-				format(string, sizeof(string), "AdmCmd: %s was unsilenced by %s",giveplayer ,sendername);
-				SendClientMessageToAllRus(COLOR_RED, string);
-			}
 		}
 		else
 		{
@@ -19439,11 +19677,13 @@ public GetPlayerID(string[])
 
 public OnPlayerText(playerid, text[])
 {
-	if(Mute[playerid] == 1)
-	{
-		SendClientMessageRus(playerid, TEAM_CYAN_COLOR, "Вы были заткнуты администратором");
-		return 0;
-	}
+    if(Muted[playerid] != 0)//если мут не равно 0
+      {
+      new string [128];
+	  format(string, sizeof(string), "Вы заткнуты отсавшиеся время заглушки %d(сек)",Muted[playerid]);
+      SendClientMessage(playerid, COLOR_GREY, string);
+      return 0;
+    }
 	if(Mobile[playerid] != -1)
 	{
 		new string [128];
@@ -19676,7 +19916,49 @@ public OnPlayerPrivmsg(senderid, playerid, text[] )
 	return 1;
 }
 //--------------------------------------------------------------------------------------------------
+/*public WarpTimer()
+{
 
+    for(new j = 0; j < MAX_PLAYERS; j++)
+        for(new i = 0; i < MAX_WARPS; i++)
+        {
+            if(IsPlayerConnected(j))
+            autowarp = GetPlayerVehicleID(j);
+                if((Warps[i][1][wObj]!=-1)&&(Warps[i][0][wObj]!=-1)&&((AllowWarp[j] == 1)||(AllowWarps == 1)))
+                {
+                    if(IsPlayerInPoint(j, Warps[i][0][wX], Warps[i][0][wY], Warps[i][0][wZ], 4.0))
+                    {
+                        if(GetPlayerState(j) == 2)
+                        {
+                            SetVehiclePos(GetPlayerVehicleID(j), Warps[i][1][wX] + 6 * floatcos(Warps[i][1][wA] + 90, degrees), Warps[i][1][wY] + 6 * floatsin(Warps[i][1][wA] + 90, degrees), Warps[i][1][wZ]+ 2);
+                            SetPlayerInterior(j,Warps[i][1][wint]);
+                            LinkVehicleToInterior(autowarp,Warps[i][1][wint]);
+                        }
+                        else
+                        {
+                            SetPlayerPos(j, Warps[i][1][wX] + 6 * floatcos(Warps[i][1][wA] + 90, degrees), Warps[i][1][wY] + 6 * floatsin(Warps[i][1][wA] + 90, degrees), Warps[i][1][wZ]+ 2);
+                            SetPlayerInterior(j,Warps[i][1][wint]);
+                        }
+                    }
+                    else if(IsPlayerInPoint(j, Warps[i][1][wX], Warps[i][1][wY], Warps[i][1][wZ], 4.0))
+                    {
+                        if(GetPlayerState(j) == 2)
+                        {
+                               SetVehiclePos(GetPlayerVehicleID(j), Warps[i][0][wX] + 6 * floatcos(Warps[i][0][wA] + 90, degrees), Warps[i][0][wY] + 6 * floatsin(Warps[i][0][wA] + 90, degrees), Warps[i][0][wZ]+ 2);
+                               SetPlayerInterior(j,Warps[i][0][wint]);
+                               LinkVehicleToInterior(autowarp,Warps[i][0][wint]);
+                        }
+                        else
+                        {
+                            SetPlayerPos(j, Warps[i][0][wX] + 6 * floatcos(Warps[i][0][wA] + 90, degrees), Warps[i][0][wY] + 6 * floatsin(Warps[i][0][wA] + 90, degrees), Warps[i][0][wZ]+ 2);
+                            SetPlayerInterior(j,Warps[i][0][wint]);
+                        }
+                    }
+                }
+        }
+    return 1;
+}
+*/
 public OnVehicleStreamIn(vehicleid, forplayerid)
 {
 	new p1, p2;
@@ -19814,7 +20096,6 @@ public LoadDuel(playerid,tid,gun1,gun2,gun3,stage)
 	}
 	return stage;
 }
-
 public FindDuelCP(playerid)
 {
 	new Float:x, Float:y, Float:z, choise, Float:mind=99999999, Float:distance;
@@ -19830,3 +20111,105 @@ public FindDuelCP(playerid)
 	}
 	return choise;
 }
+public SecondTimer()
+{
+      for(new i = 0; i < MAX_PLAYERS; i++)//цикл
+      {
+          if(Muted[i] > 0)//если мут больше нуля секунд
+           {
+				Muted[i] --;//отнимаем мут на 1
+                if(Muted[i] == 0)//если мут равно одному
+                SendClientMessage(i,COLOR_RED,"У вас больше нет молчанки");//выдаем сообщение
+           }
+      }
+      return 1;
+}
+public OnVehicleMod(playerid,vehicleid,componentid)
+{
+if(!(IsPlayerInRangeOfPoint(playerid,15.0,616.7820,-74.8151,997.6350) || IsPlayerInRangeOfPoint(playerid,15.0,615.2851,-124.2390,997.6350) ||
+IsPlayerInRangeOfPoint(playerid,15.0,617.5380,-1.9900,1000.6829)) && GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
+{
+new string[128];
+GetPlayerName(playerid,string,MAX_PLAYER_NAME);
+format(string, sizeof(string), "%s кикнут с сервера, причина: CarUpgradeHack",string);
+SendClientMessageToAll(0xAA3333AA, string);
+Kick(playerid);
+}
+return 1;
+}
+public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+{
+if(dialogid == 6)
+    {
+     if(response)
+     {
+      if(listitem==0)
+      {
+      DestroyObject(neon[playerid][0]);
+      DestroyObject(neon[playerid][1]);
+      neon[playerid][0] = CreateObject(18647,0,0,0,0,0,0,100.0);
+      neon[playerid][1] = CreateObject(18647,0,0,0,0,0,0,100.0);
+      AttachObjectToVehicle(neon[playerid][0], GetPlayerVehicleID(playerid), -0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      AttachObjectToVehicle(neon[playerid][1], GetPlayerVehicleID(playerid), 0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      SendClientMessage(playerid, 0xFFFFFFAA, "Вы установили неон");
+      }
+      if(listitem==1)
+      {
+      DestroyObject(neon[playerid][0]);
+      DestroyObject(neon[playerid][1]);
+      neon[playerid][0] = CreateObject(18648,0,0,0,0,0,0,100.0);
+      neon[playerid][1] = CreateObject(18648,0,0,0,0,0,0,100.0);
+      AttachObjectToVehicle(neon[playerid][0], GetPlayerVehicleID(playerid), -0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      AttachObjectToVehicle(neon[playerid][1], GetPlayerVehicleID(playerid), 0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      SendClientMessage(playerid, 0xFFFFFFAA, "Вы установили неон");
+      }
+      if(listitem==2)
+      {
+      DestroyObject(neon[playerid][0]);
+      DestroyObject(neon[playerid][1]);
+      neon[playerid][0] = CreateObject(18649,0,0,0,0,0,0,100.0);
+      neon[playerid][1] = CreateObject(18649,0,0,0,0,0,0,100.0);
+      AttachObjectToVehicle(neon[playerid][0], GetPlayerVehicleID(playerid), -0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      AttachObjectToVehicle(neon[playerid][1], GetPlayerVehicleID(playerid), 0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      SendClientMessage(playerid, 0xFFFFFFAA, "Вы установили неон");
+      }
+      if(listitem==3)
+      {
+      DestroyObject(neon[playerid][0]);
+      DestroyObject(neon[playerid][1]);
+      neon[playerid][0] = CreateObject(18650,0,0,0,0,0,0,100.0);
+      neon[playerid][1] = CreateObject(18650,0,0,0,0,0,0,100.0);
+      AttachObjectToVehicle(neon[playerid][0], GetPlayerVehicleID(playerid), -0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      AttachObjectToVehicle(neon[playerid][1], GetPlayerVehicleID(playerid), 0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      SendClientMessage(playerid, 0xFFFFFFAA, "Вы установили неон");
+      }
+      if(listitem==4)
+      {
+      DestroyObject(neon[playerid][0]);
+      DestroyObject(neon[playerid][1]);
+      neon[playerid][0] = CreateObject(18651,0,0,0,0,0,0,100.0);
+      neon[playerid][1] = CreateObject(18651,0,0,0,0,0,0,100.0);
+      AttachObjectToVehicle(neon[playerid][0], GetPlayerVehicleID(playerid), -0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      AttachObjectToVehicle(neon[playerid][1], GetPlayerVehicleID(playerid), 0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      SendClientMessage(playerid, 0xFFFFFFAA, "Вы установили неон");
+      }
+      if(listitem==5)
+      {
+      DestroyObject(neon[playerid][0]);
+      DestroyObject(neon[playerid][1]);
+      neon[playerid][0] = CreateObject(18652,0,0,0,0,0,0,100.0);
+      neon[playerid][1] = CreateObject(18652,0,0,0,0,0,0,100.0);
+      AttachObjectToVehicle(neon[playerid][0], GetPlayerVehicleID(playerid), -0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      AttachObjectToVehicle(neon[playerid][1], GetPlayerVehicleID(playerid), 0.8, 0.0, -0.70, 0.0, 0.0, 0.0);
+      SendClientMessage(playerid, 0xFFFFFFAA, "Вы установили неон");
+      }
+      if(listitem==6)
+      {
+      DestroyObject(neon[playerid][0]);
+      DestroyObject(neon[playerid][1]);
+      }
+     }
+}
+}
+
+
