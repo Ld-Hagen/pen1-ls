@@ -6279,30 +6279,18 @@ public PrintPlayerWeapons(playerid,targetid)
 	//SendClientMessageRus(playerid, TEAM_BLUE_COLOR, coordsstring);
 	format(coordsstring, sizeof(coordsstring),"*** %s ***",name);
 	format(coordsstring, sizeof(coordsstring), "Уровень: [%d]\nЗдоровье: %.1f\nНаличные: [$%d ($%d)]\nДенег в банке: [$%d]\nТелефон: [%d]\nОружие: %s %s %s %s %s %s\nБоезапас1: [%d]\nБоезапас2: [%d]\nБоезапас3: [%d]\nБоезапас4: [%d]\nБоезапас5: [%d]\nБоезапас6: [%d]", level, shealth+50, cash, PlayerInfo[targetid][pCash], account, pnumber,sgun1,sgun2,sgun3,sgun4,sgun5,sgun6,ammo1,ammo2,ammo3,ammo4,ammo5,ammo6);
-    ShowPlayerDialog(playerid, 5, DIALOG_STYLE_MSGBOX, "Статистика Игрока", coordsstring, "Ок", "Отмена");
  	if (stats)
 	{
 		format(coordsstring, sizeof(coordsstring), "Кейсы: [%d/4] Автомобили: [%d/4] Гонки: [%d/4] Сервисы: [%d/20] ",pcb,phw,psr,pwa);
 		format(coordsstring, sizeof(coordsstring), "Убийства: [%d/30] Убийства ВНН1: [%d/4]  След. уровень: [$%d] Опыт: [%d/%d]",kills,ppen,costlevel,exp,expamount);
-
-		/*
-		if(expamount <= exp)
-		{
-			SendClientMessageRus(playerid, COLOR_RED,coordsstring);
-		}
-		else
-		{
-			SendClientMessageRus(playerid, COLOR_GRAD5,coordsstring);
-		}
-		*/
 	}
 	if ( PlayerInfo[playerid][pAdmin] >= 1)
 	{
 		format(coordsstring, sizeof(coordsstring), "Дом: [%d] Бизнес: [%d] Аренд. авто: [%d] Интерьер: [%d] Локация: [%d]", housekey,bizkey,HireCar[targetid],intir,local);
-		SendClientMessageRus(playerid, COLOR_GRAD6,coordsstring);
 	}
-	//SendClientMessageRus(playerid, COLOR_GRAD6,"Hint: use /level <playerid> to see another players stats");
-	SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
+	ShowPlayerDialog(playerid, 5, DIALOG_STYLE_MSGBOX, "Статистика Игрока", coordsstring, "Ок", "Отмена");
+	SendClientMessageRus(playerid, COLOR_GRAD6,"Hint: use /level <playerid> to see another players stats");
+//	SendClientMessageRus(playerid, COLOR_GREEN,"_______________________________________");
 }
 //---------------------------------------------------------
 
@@ -7667,7 +7655,7 @@ public LoadPlayer(loaderid,const string[])
 	new string2[64];
 	new loaded = loaderid;
 	new valtmp[128];
-	format(string2, sizeof(string2), "%s.cer", (string));
+	format(string2, sizeof(string2), "%s.cer", strlower(string));
 	new File: file = fopen(string2, io_read);
 	if (file)
 	{
@@ -7722,7 +7710,7 @@ public SavePlayer(loaderid,const string[])
 {
 	new string3[32];
 	new saved = loaderid;
-	format(string3, sizeof(string3), "%s.cer", (string));
+	format(string3, sizeof(string3), "%s.cer", strlower(string));
 	new File: pFile = fopen(string3, io_write);
 	if (pFile)
 	{
@@ -7786,7 +7774,7 @@ public OnPlayerLogin(playerid,const string[])
 	}
 	*/
 	GetPlayerName(playerid, playername2, sizeof(playername2));
-	format(string2, sizeof(string2), "%s.cer", (playername2));
+	format(string2, sizeof(string2), "%s.cer", strlower(playername2));
 	new File: file = fopen(string2, io_read);
 	if (file)
 	{
@@ -7948,7 +7936,7 @@ public PlayerUpdate(playerid)
 		new string3[32];
 		new playername3[MAX_PLAYER_NAME];
 		GetPlayerName(playerid, playername3, sizeof(playername3));
-		format(string3, sizeof(string3), "%s.cer", (playername3));
+		format(string3, sizeof(string3), "%s.cer", strlower(playername3));
 		new File: pFile = fopen(string3, io_write);
 		if (gdebug){printf("DEBUG PlayerUpdate(%d)8.5", playerid);}
 		if (pFile)
@@ -8026,14 +8014,14 @@ public OnPlayerRename(name[],string[],playerid)
 	if (gdebug >= 1){printf("DEBUG OnPlayerRename(%d)", playerid);}
 	if (gPlayerLogged[playerid] != 0)
 	{
-		new File: pFile = fopen((string), io_write);
+		new File: pFile = fopen(strlower(string), io_write);
 		if (gdebug){printf("DEBUG PlayerUpdate(%d)8.5", playerid);}
 		if (pFile)
 		{
 			new var[32];
 			format(var, 32, "%s\n", PlayerInfo[playerid][pPassword]);fwrite(pFile, var);
 			fclose(pFile);
-			new File: hFile = fopen((string), io_append);
+			new File: hFile = fopen(strlower(string), io_append);
 //			PlayerInfo[playerid][pCash] = GetPlayerMoney(playerid);
 			format(var, 32, "%d pCash\n",PlayerInfo[playerid][pCash]);fwrite(hFile, var);
 			format(var, 32, "%d pAccount\n",PlayerInfo[playerid][pAccount]);fwrite(hFile, var);
@@ -8616,6 +8604,133 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		}
 	    return 1;
 	}
+	
+	if(strcmp(cmd,"/unbanip",true)==0)
+	{
+		if(PlayerInfo[playerid][pAdmin] >= 3)
+		{
+		    tmp = strtok(cmdtext,idx);
+		    if(!strlen(tmp))
+		    {
+		        SendClientMessageRus(playerid,COLOR_GRAD1,"ИСПОЛЬЗОВАНИЕ: /unbanip [ip игрока]");
+		        return 1;
+   			}
+
+			new ipidx = 0;
+			new ip[8];
+			new tmp2[64];
+
+			tmp2 = strtok(tmp,ipidx, ".");
+			if(strlen(tmp2) == 0)
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ПОДСКАЗКА: неправильно введен IP адрес.");
+		        return 1;
+			}
+			if(strcmp(tmp2, "*", true) == 0)
+			{
+			    ip[4] = 255;
+			    ip[0] = 0;
+			}
+			else if((ip[0] = strval(tmp2)) >= 0 && (ip[0] = strval(tmp2)) <= 255)
+			{
+			    ip[4] = ip[0];
+			}
+			else
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ПОДСКАЗКА: неправильно введен IP адрес.");
+		        return 1;
+			}
+
+			tmp2 = strtok(tmp,ipidx, ".");
+			if(strlen(tmp2) == 0)
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ПОДСКАЗКА: неправильно введен IP адрес.");
+		        return 1;
+			}
+			if(strcmp(tmp2, "*", true) == 0)
+			{
+			    ip[5] = 255;
+			    ip[1] = 0;
+			}
+			else if((ip[1] = strval(tmp2)) >= 0 && (ip[1] = strval(tmp2)) <= 255)
+			{
+			    ip[5] = ip[1];
+			}
+			else
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ПОДСКАЗКА: неправильно введен IP адрес.");
+		        return 1;
+			}
+			tmp2 = strtok(tmp,ipidx, ".");
+			if(strlen(tmp2) == 0)
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ПОДСКАЗКА: неправильно введен IP адрес.");
+		        return 1;
+			}
+			if(strcmp(tmp2, "*", true) == 0)
+			{
+			    ip[6] = 255;
+			    ip[2] = 0;
+			}
+			else if((ip[2] = strval(tmp2)) >= 0 && (ip[2] = strval(tmp2)) <= 255)
+			{
+			    ip[6] = ip[2];
+			}
+			else
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ПОДСКАЗКА: неправильно введен IP адрес.");
+		        return 1;
+			}
+			tmp2 = strtok(tmp,ipidx, ".");
+			if(strlen(tmp2) == 0)
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ПОДСКАЗКА: неправильно введен IP адрес.");
+		        return 1;
+			}
+			if(strcmp(tmp2, "*", true) == 0)
+			{
+			    ip[7] = 255;
+			    ip[3] = 0;
+			}
+			else if((ip[3] = strval(tmp2)) >= 0 && (ip[3] = strval(tmp2)) <= 255)
+			{
+			    ip[7] = ip[3];
+			}
+			else
+			{
+                SendClientMessageRus(playerid,COLOR_GRAD1,"ПОДСКАЗКА: неправильно введен IP адрес.");
+		        return 1;
+			}
+		    new s1[5];
+		    new s2[10];
+		    new s3[15];
+		    new s4[30];
+		    for(new i = ip[0]; i<=ip[4]; i++)
+		    {
+				format(s1, sizeof(s1), "%d.", i);
+				for(new j = ip[1]; j<=ip[5]; j++)
+                {
+                    format(s2, sizeof(s2), "%s%d.", s1, j);
+					for(new k = ip[2]; k<=ip[6]; k++)
+                    {
+                        format(s3, sizeof(s3), "%s%d.", s2, k);
+						for(new l = ip[3]; l<=ip[7]; l++)
+                        {
+            	            format(s4,sizeof(s4),"unbanip %s%d", s3, l);
+            	            print(s4);
+                            SendRconCommand(s4);
+                        }
+			        }
+			    }
+			}
+   			SendRconCommand("reloadbans");
+   			GetPlayerName(giveplayerid, giveplayer, sizeof(giveplayer));
+			GetPlayerName(playerid, sendername, sizeof(sendername));
+			format(string, 256, "AdmWarning: %s разбанил IP %s", sendername,tmp);
+			ABroadCast(COLOR_YELLOW,string,1, CHAT_ADM_WARN);
+		}
+		return 1;
+	}
 
 //-------------------------------[Pay]--------------------------------------------------------------------------
 	if(strcmp(cmd, "/pay", true) == 0)
@@ -8766,7 +8881,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			GameTextForPlayerRus(playerid, "~w~Now Select a character and type /login <your password>", 10000, 3);*/
 		strmid(PlayerInfo[playerid][pPassword], tmp, 0, strlen(cmdtext), 255);
 		GetPlayerName(playerid, playername, sizeof(playername));
-		format(string, sizeof(string), "%s.cer", (playername));
+		format(string, sizeof(string), "%s.cer", strlower(playername));
 		PlayerInfo[playerid][pCash] = GetPlayerMoney(playerid);
 		new File: file = fopen(string, io_read);
 		if (file)
@@ -17035,33 +17150,33 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		}
 		return 1;
 	}
-    if(strcmp(cmd, "/mute", true) == 0)
-     {
-     if(PlayerInfo[playerid][pAdmin] < 1)
-     return SendClientMessage(playerid,COLOR_RED,"У вас не прав на использование даной команды");
-     tmp = strtok(cmdtext, idx);
-     if(!strlen(tmp))
-     return
-	 SendClientMessage(playerid, COLOR_GRAD2, "USAGE: /mute [playerid] [кол-во минут] [причина]");
-     new id = strval(tmp);
-     tmp = strtok(cmdtext, idx);
-     new time = strval(tmp);
-     if(!strlen(tmp) || !IsPlayerConnected(id))
-     return
-	 SendClientMessage(playerid, COLOR_GRAD2, "USAGE: /mute [playerid] [кол-во минут] [причина]");
-     if(!strlen(cmdtext[idx]))
-     return 1;
-	 SendClientMessage(playerid, COLOR_GRAD2, "USAGE: /mute [playerid] [кол-во минут] [причина]");
-     format(string, sizeof(string), "Вы заткнули %s на %d(минут) с причиной %s", GN(id),time, cmdtext[idx]);
-     SendClientMessage(playerid, COLOR_WHITE, string);
-     format(string, sizeof(string), "Вы были заткнуты админом %s на %d(минут(ы)) Причина: %s", GN(playerid),time, cmdtext[idx]);
-     SendClientMessage(id, COLOR_WHITE, string);
-	 format(string, sizeof(string), "AdmCmd: %s был заткнут админом %s на %d(минут) Причина %s",GN(id),GN(playerid),time,cmdtext[idx]);
-	 SendClientMessageToAllRus(COLOR_RED, string);
-     Muted[id] = time*60;
-     return 1;
-     }
-	if(strcmp(cmd, "/mutet", true) == 0)
+    if(strcmp(cmd, "/mutet", true) == 0)
+    {
+		if(PlayerInfo[playerid][pAdmin] < 1)
+			return SendClientMessage(playerid,COLOR_RED,"У вас не прав на использование даной команды");
+		tmp = strtok(cmdtext, idx);
+		if(!strlen(tmp))
+			return
+		SendClientMessage(playerid, COLOR_GRAD2, "USAGE: /mute [playerid] [кол-во минут] [причина]");
+		new id = strval(tmp);
+		tmp = strtok(cmdtext, idx);
+		new time = strval(tmp);
+		if(!strlen(tmp) || !IsPlayerConnected(id))
+			return;
+		SendClientMessage(playerid, COLOR_GRAD2, "USAGE: /mute [playerid] [кол-во минут] [причина]");
+		if(!strlen(cmdtext[idx]))
+			return 1;
+		SendClientMessage(playerid, COLOR_GRAD2, "USAGE: /mute [playerid] [кол-во минут] [причина]");
+		format(string, sizeof(string), "Вы заткнули %s на %d(минут) с причиной %s", GN(id),time, cmdtext[idx]);
+		SendClientMessage(playerid, COLOR_WHITE, string);
+		format(string, sizeof(string), "Вы были заткнуты админом %s на %d(минут(ы)) Причина: %s", GN(playerid),time, cmdtext[idx]);
+		SendClientMessage(id, COLOR_WHITE, string);
+		format(string, sizeof(string), "AdmCmd: %s был заткнут админом %s на %d(минут) Причина %s",GN(id),GN(playerid),time,cmdtext[idx]);
+		SendClientMessageToAllRus(COLOR_RED, string);
+		Muted[id] = time*60;
+		return 1;
+    }
+	if(strcmp(cmd, "/mute", true) == 0)
 	{
 		tmp = strtok(cmdtext, idx);
 		if(!strlen(tmp))
@@ -19579,6 +19694,11 @@ public GetPlayerID(string[])
 
 public OnPlayerText(playerid, text[])
 {
+	if(Mute[playerid] == 1)
+	{
+		SendClientMessageRus(playerid, TEAM_CYAN_COLOR, "Вы были заткнуты администратором");
+		return 0;
+	}
     if(Muted[playerid] != 0)//если мут не равно 0
       {
       new string [128];
