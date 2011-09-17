@@ -4724,7 +4724,7 @@ public DMDetect()
 			{
 				if(IsPlayerConnected(i) == 1)
 				{
-					if(Spectate[i] == -1)
+					if(Spectate[i] != -1 && TVMode[i] == 11)
 					{
 						TogglePlayerControllable(i, 1);
 						SetPlayerInterior(i,Unspec[i][sPint]);
