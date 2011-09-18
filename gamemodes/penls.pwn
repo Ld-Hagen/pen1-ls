@@ -7590,17 +7590,17 @@ public PayDay()
 	return 1;
 }
 
-strtok(const string[], &index)
+strtok(const string[], &index, const delimiter = ' ')
 {
 	new length = strlen(string);
-	while ((index < length) && (string[index] <= ' '))
+	while ((index < length) && (string[index] <= delimiter))
 	{
 		index++;
 	}
 
 	new offset = index;
 	new result[20];
-	while ((index < length) && (string[index] > ' ') && ((index - offset) < (sizeof(result) - 1)))
+	while ((index < length) && (string[index] > delimiter) && ((index - offset) < (sizeof(result) - 1)))
 	{
 		result[index - offset] = string[index];
 		index++;

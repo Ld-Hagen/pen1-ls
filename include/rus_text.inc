@@ -93,7 +93,7 @@ public FixRus(string[])
 
 stock strlower(txt[])
 {
-    new tmp[MAX_TEXTSTR];
+    new tmp[512];
     tmp[0]=0;
     if (txt[0]==0) return tmp;
     new i=0;
